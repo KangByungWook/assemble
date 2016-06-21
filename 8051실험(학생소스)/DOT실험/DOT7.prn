@@ -1,0 +1,211 @@
+ FFFFFFFF           ;DOT MATRIX 실험7 ~  글자 좌우 이동하기 "ㄱ"  
+                
+ FFC5           COLGREEN     EQU    0FFC5H    
+ FFC6           COLRED       EQU    0FFC6H   
+ FFC7           ROW          EQU    0FFC7H   
+                
+ 0020           REPEAT       EQU    20H     ; 다이나믹 점등 횟수 보관
+ 0021           LSHIFTNUM    EQU    21H     ; 왼쪽 이동 값 보관 
+ 0022           RSHIFTNUM    EQU    22H     ; 오른쪽 이동 값 보관 
+ 0023           MODE         EQU    23H     ; 이동 모드 값 보관 
+ 0024           TEMP         EQU    24H     ; 임시 저장 변수
+                
+ 8000                        ORG    8000H
+ 8000 D2D3                   SETB   PSW.3
+ 8002 D2D4                   SETB   PSW.4   ; 뱅크3 레지스터 사용 
+                
+ 8004                        ;*********************  도트 매트릭스 LED 클리어 
+ 8004 7900                   MOV    R1,#00H          ; DOT MATRIX LED 끄기
+ 8006 7A00                   MOV    R2,#00H
+ 8008 7800                   MOV    R0,#00H
+                            
+ 800A 1280B7                 CALL   DOTCOLG
+ 800D 1280C2                 CALL   DOTCOLR
+ 8010 1280CD                 CALL   DELAY
+                
+ 8013           ;****************************************************
+ 8013           ;*     글자 이동 실험 프로그램의 메인 부분          *  
+ 8013           ;*     중요 사용 변수                               *
+ 8013           ;*       R0 : DOT ROW 값 저장                       *
+ 8013           ;*       R1 : DOT COLUMN GREEN 값 저장              *
+ 8013           ;*       R2 : DOT COLUMN RED 값 저장                *
+ 8013           ;****************************************************
+ 8013 752020    MAIN:        MOV    REPEAT,#20H     ; 다이나믹 점등 횟수 지정
+ 8016 752100                 MOV    LSHIFTNUM,#00H  
+ 8019 752207                 MOV    RSHIFTNUM,#07H  
+                
+ 801C E522      RSTART:      MOV    A,RSHIFTNUM      
+ 801E 14                     DEC    A
+ 801F F522                   MOV    RSHIFTNUM,A
+ 8021 B40016                 CJNE   A,#00H,LOOP1
+                
+ 8024 752301    FSTART:      MOV    MODE,#01H
+ 8027 128056                 CALL   DYNAMIC
+ 802A D520F7                 DJNZ   REPEAT,FSTART
+ 802D 752020                 MOV    REPEAT,#20H
+                
+ 8030 E521      LSTART:      MOV    A,LSHIFTNUM
+ 8032 04                     INC    A
+ 8033 F521                   MOV    LSHIFTNUM,A
+ 8035 B40710                 CJNE   A,#07H,LOOP2
+ 8038 80D9                   JMP    MAIN
+                             
+ 803A 752302    LOOP1:       MOV    MODE,#02H
+ 803D 128056                 CALL   DYNAMIC
+ 8040 D520F7                 DJNZ   REPEAT,LOOP1
+ 8043 752020                 MOV    REPEAT,#20H
+ 8046 80D4                   JMP    RSTART
+                
+ 8048 752304    LOOP2:       MOV    MODE,#04H
+ 804B 128056                 CALL   DYNAMIC
+ 804E D520F7                 DJNZ   REPEAT,LOOP2
+ 8051 752020                 MOV    REPEAT,#20H             
+ 8054 80DA                   JMP    LSTART
+                
+ 8056           ;***************************************************
+ 8056           ;*     서브 루틴: DYNAMIC                          *
+ 8056           ;*          입력: MODE ( 이동 여부 및 방향 결정 )  *
+ 8056           ;*          출력: 도트 매트릭스 LED                *
+ 8056           ;*          기능: 다이나믹 점등                    *
+ 8056           ;***************************************************
+                
+ 8056 7802      DYNAMIC:     MOV    R0,#00000010B   ; 두번째 행 지정
+ 8058 7B00                   MOV    R3,#00H         ; 인덱스 값 저장 
+                                   
+ 805A 12808D    DLOOP:       CALL   KOR             ; 데이터 읽어오기 
+                
+ 805D                        ;******************* 이동 모드에 따라 이동
+ 805D E523                   MOV    A,MODE          
+ 805F B40206                 CJNE   A,#02H,PATH1
+ 8062 12809B                 CALL   RSHIFT           
+ 8065 028074                 JMP    DOTON
+                            
+ 8068 B40406    PATH1:       CJNE   A,#04H,PATH2
+ 806B 1280A9                 CALL   LSHIFT
+ 806E 028074                 JMP    DOTON
+                 
+ 8071 B40118    PATH2:       CJNE   A,#01H,RPT
+                
+ 8074                        ;****************** 도트 매트릭스 LED 켜기                  
+ 8074 1280C2    DOTON:       CALL   DOTCOLR  ; 켜기
+ 8077 1280CD                 CALL   DELAY    ; 일정시간 동안 켜진 상태 유지
+                
+ 807A 8824                   MOV    TEMP,R0  ; 현재 행의 값 저장
+                             
+ 807C                        ;****************** 도트 매트릭스 LED 끄기
+ 807C 7A00                   MOV    R2,#00H
+ 807E 7800                   MOV    R0,#00H
+ 8080 1280C2                 CALL   DOTCOLR  ; 끄기   
+                
+ 8083 A824                   MOV    R0,TEMP  ; 현재 행의 값 복원
+                             
+ 8085 C3                     CLR    C 
+ 8086 E8                     MOV    A,R0
+ 8087 33                     RLC    A        ; 다음 행으로 이동
+ 8088 F8                     MOV    R0,A
+                
+ 8089 B480CE                 CJNE   A,#10000000B,DLOOP              
+ 808C 22        RPT:         RET             ; 상위 루틴 복귀          
+                
+ 808D           ;***********************************************
+ 808D           ;*     서브 루틴: KOR                          *
+ 808D           ;*          입력: R3                           *
+ 808D           ;*          출력: R2                           *
+ 808D           ;*          기능: 데이터 읽어 오는 부분        *
+ 808D           ;***********************************************
+ 808D 908095    KOR:         MOV    DPTR,#FONT 
+ 8090 EB                     MOV    A,R3
+ 8091 93                     MOVC   A,@A+DPTR                 
+ 8092 FA                     MOV    R2,A
+ 8093 0B                     INC    R3 
+ 8094 22                     RET                 
+ 8095                                        ; "ㄱ" 데이터
+ 8095           FONT:                        
+ 8095 7E404040  DB           7EH,40H,40H,40H,40H,40H  
+                
+ 809B           ;************************************************
+ 809B           ;*     서브 루틴: RSHIFT                        *
+ 809B           ;*          입력: R2,RSHIFTNUM                  *
+ 809B           ;*          출력: R2                            *
+ 809B           ;*          기능: 읽어온 데이터 왼쪽으로        *    
+ 809B           ;*                이동 횟수 만큼 이동           *
+ 809B           ;************************************************
+ 809B 852224    RSHIFT:      MOV    TEMP,RSHIFTNUM  ; 오른쪽 이동 횟수 저장
+ 809E C3        RBACK:       CLR    C
+ 809F EA                     MOV    A,R2
+ 80A0 13                     RRC    A               ; 오른쪽 이동
+ 80A1 FA                     MOV    R2,A
+ 80A2 D522F9                 DJNZ   RSHIFTNUM,RBACK
+ 80A5 852422                 MOV    RSHIFTNUM,TEMP  ; 오른쪽 이동 횟수 복원
+ 80A8 22                     RET
+                
+ 80A9           ;************************************************
+ 80A9           ;*     서브 루틴: LSHIFT                        *
+ 80A9           ;*          입력: R2,LSHIFTNUM                  *
+ 80A9           ;*          출력: R2                            *
+ 80A9           ;*          기능: 읽어온 데이터 왼쪽으로        *
+ 80A9           ;*                이동 횟수 만큼 이동           *
+ 80A9           ;************************************************ 
+ 80A9 852124    LSHIFT:      MOV    TEMP,LSHIFTNUM  ; 왼쪽 이동 횟수 저장
+ 80AC C3        LBACK:       CLR    C
+ 80AD EA                     MOV    A,R2
+ 80AE 33                     RLC    A               ; 왼쪽 이동
+ 80AF FA                     MOV    R2,A
+ 80B0 D521F9                 DJNZ   LSHIFTNUM,LBACK
+ 80B3 852421                 MOV    LSHIFTNUM,TEMP  ; 왼쪽 이동 횟수 복원
+ 80B6 22                     RET 
+                
+ 80B7           ;************************************************
+ 80B7           ;*     서브 루틴: DOTCOLG                       *
+ 80B7           ;*          입력: R1,R0                         *
+ 80B7           ;*          출력: 도트 매트릭스 LED             *
+ 80B7           ;*          기능: 주어진 행과 열의 값에         *
+ 80B7           ;*                해당하는  연두색 LED 켜기     *                   
+ 80B7           ;************************************************ 
+ 80B7 90FFC5    DOTCOLG:     MOV    DPTR,#COLGREEN
+ 80BA E9                     MOV    A,R1
+ 80BB F0                     MOVX   @DPTR,A
+                
+ 80BC 90FFC7                 MOV    DPTR,#ROW
+ 80BF E8                     MOV    A,R0
+ 80C0 F0                     MOVX   @DPTR,A
+ 80C1 22                     RET
+                
+ 80C2           ;************************************************
+ 80C2           ;*     서브 루틴: DOTCOLR                       *
+ 80C2           ;*          입력: R2,R0                         *
+ 80C2           ;*          출력: 도트 매트릭스 LED             *
+ 80C2           ;*          기능: 주어진 행과 열의 값에         *
+ 80C2           ;*                해당하는  빨강색 LED 켜기     *                   
+ 80C2           ;************************************************ 
+ 80C2 90FFC6    DOTCOLR:     MOV    DPTR,#COLRED
+ 80C5 EA                     MOV    A,R2
+ 80C6 F0                     MOVX   @DPTR,A
+                
+ 80C7 90FFC7                 MOV    DPTR,#ROW
+ 80CA E8                     MOV    A,R0
+ 80CB F0                     MOVX   @DPTR,A
+ 80CC 22                     RET 
+                
+ 80CD           ;************************************************
+ 80CD           ;*           기능: LED 가 켜져 있는             *
+ 80CD           ;*                 시간 조절                    *
+ 80CD           ;************************************************
+ 80CD 7F01      DELAY:       MOV    R7,#01H
+ 80CF 7ECF      DELAY1:      MOV    R6,#0CFH
+ 80D1 DEFE      DELAY2:      DJNZ   R6,DELAY2
+ 80D3 DFFA                   DJNZ   R7,DELAY1
+ 80D5 22                     RET 
+                
+                
+ 80D6           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DOT실험\DOT7.ASM
+
+
+

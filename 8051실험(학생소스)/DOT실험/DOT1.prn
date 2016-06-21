@@ -1,0 +1,83 @@
+ FFFFFFFF           ;DOT MATRIX 실험1 ~  DOT COLOR TEST 
+                
+ FFC5           COLGREEN     EQU    0FFC5H  
+ FFC6           COLRED       EQU    0FFC6H   
+ FFC7           ROW          EQU    0FFC7H   
+                
+ 8000                        ORG    8000H
+                
+                ;****************************************************
+                ;*       R0 : DOT ROW 값 저장                       *
+                ;*       R1 : DOT COLUMN GREEN 값 저장              *
+                ;*       R2 : DOT COLUMN RED 값 저장                *
+                ;****************************************************
+                
+ 8000 7900      LOOP:        MOV    R1,#00H  ; DOT MATRIX LED 끄기
+ 8002 7A00                   MOV    R2,#00H
+ 8004 7800                   MOV    R0,#00H
+                            
+ 8006 12803E                 CALL   DOTCOLG
+ 8009 128049                 CALL   DOTCOLR
+ 800C 128054                 CALL   DELAY
+                                    
+ 800F 79FF                   MOV    R1,#0FFH ; GREEN COLOR 켜기
+ 8011 7A00                   MOV    R2,#00H
+ 8013 78FF                   MOV    R0,#0FFH
+                             
+ 8015 12803E                 CALL   DOTCOLG 
+ 8018 128049                 CALL   DOTCOLR
+ 801B 128054                 CALL   DELAY
+                             
+ 801E 7900                   MOV    R1,#00H  ; RED COLOR 켜기
+ 8020 7AFF                   MOV    R2,#0FFH
+ 8022 78FF                   MOV    R0,#0FFH
+                                    
+ 8024 12803E                 CALL   DOTCOLG
+ 8027 128049                 CALL   DOTCOLR
+ 802A 128054                 CALL   DELAY
+                
+ 802D 79FF                   MOV    R1,#0FFH ; GREEN|+RED COLR 켜기
+ 802F 7AFF                   MOV    R2,#0FFH
+ 8031 78FF                   MOV    R0,#0FFH 
+                                    
+ 8033 12803E                 CALL   DOTCOLG
+ 8036 128049                 CALL   DOTCOLR
+ 8039 128054                 CALL   DELAY
+ 803C 80C2                   JMP    LOOP
+                                  
+ 803E 90FFC5    DOTCOLG:     MOV    DPTR,#COLGREEN
+ 8041 E9                     MOV    A,R1
+ 8042 F0                     MOVX   @DPTR,A
+                
+ 8043 90FFC7                 MOV    DPTR,#ROW
+ 8046 E8                     MOV    A,R0
+ 8047 F0                     MOVX   @DPTR,A
+ 8048 22                     RET
+                
+ 8049 90FFC6    DOTCOLR:     MOV    DPTR,#COLRED
+ 804C EA                     MOV    A,R2
+ 804D F0                     MOVX   @DPTR,A
+                
+ 804E 90FFC7                 MOV    DPTR,#ROW
+ 8051 E8                     MOV    A,R0
+ 8052 F0                     MOVX   @DPTR,A
+ 8053 22                     RET 
+                
+ 8054 7F07      DELAY:       MOV    R7,#07H
+ 8056 7EFF      DELAY1:      MOV    R6,#0FFH
+ 8058 7DFF      DELAY2:      MOV    R5,#0FFH
+ 805A DDFE      DELAY3:      DJNZ   R5,DELAY3
+ 805C DEFA                   DJNZ   R6,DELAY2
+ 805E DFF6                   DJNZ   R7,DELAY1
+ 8060 22                     RET 
+ 8061           END                     
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DOT실험\DOT1.ASM
+
+
+

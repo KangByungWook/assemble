@@ -1,0 +1,63 @@
+ FFFFFFFF           ;6 7_SEGMENT 실험5 ~  00 00 00 ~ FF FF FF 카운터 동작
+                
+ FFC3           SEGL            EQU    0FFC3H
+ FFC2           SEGM            EQU    0FFC2H
+ FFC1           SEGR            EQU    0FFC1H
+                
+ 8000                           ORG    8000H
+                                
+ 8000 7800      START:          MOV    R0,#00H
+ 8002 7900                      MOV    R1,#00H
+ 8004 7A00                      MOV    R2,#00H        ; 초기화 
+                                
+ 8006 128026    LOOP:           CALL   DIS            ; 표시 
+ 8009 128036                    CALL   DELAY          ; 일정 시간 지연
+                
+ 800C B8FF0E                    CJNE   R0,#0FFH,PATH1 ; 오른쪽 7_SEGMENT 비교
+ 800F 7800                      MOV    R0,#00H        ; FF 면 RO 초기화
+                
+ 8011 B9FF0C                    CJNE   R1,#0FFH,PATH2 ; 중간 7_SEGMENT 비교
+ 8014 7900                      MOV    R1,#00H        ; FF 면 R1 초기화
+                
+ 8016 BAFF0A                    CJNE   R2,#0FFH,PATH3 ; 왼쪽 7_SEGMENT 비교
+ 8019 7A00                      MOV    R2,#00H        ; FF 면 R2 초기화
+                
+ 801B 80E3                      JMP    START
+                
+ 801D 08        PATH1:          INC    R0             ; R0 1씩 증가
+ 801E 80E6                      JMP    LOOP
+                
+ 8020 09        PATH2:          INC    R1             ; R1 1씩 증가
+ 8021 80E3                      JMP    LOOP
+                
+ 8023 0A        PATH3:          INC    R2             ; R2 1씩 증가
+ 8024 80E0                      JMP    LOOP
+                                  
+ 8026 EA        DIS:            MOV    A,R2           ; 표시 루틴 
+ 8027 90FFC3                    MOV    DPTR,#SEGL
+ 802A F0                        MOVX   @DPTR,A
+                
+ 802B E9                        MOV    A,R1
+ 802C 90FFC2                    MOV    DPTR,#SEGM
+ 802F F0                        MOVX   @DPTR,A
+                
+ 8030 E8                        MOV    A,R0
+ 8031 90FFC1                    MOV    DPTR,#SEGR
+ 8034 F0                        MOVX   @DPTR,A
+ 8035 22                        RET
+                                                
+ 8036 7E80      DELAY:          MOV    R6,#80H       ; 시간 지연 루틴
+ 8038 7F80      DELAY1:         MOV    R7,#80H
+ 803A DFFE      DELAY2:         DJNZ   R7,DELAY2
+ 803C DEFA                      DJNZ   R6,DELAY1
+ 803E 22                        RET 
+ 803F           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험(소스코드)\7_SEGMENT실험\SLED5.ASM
+
+
+

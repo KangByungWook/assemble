@@ -1,0 +1,89 @@
+ FFFFFFFF           ;***********************************************************
+ FFFFFFFF           ;*       다른 모뮬에 붙이기 위해                           *
+ FFFFFFFF           ;*       시간 업데이트 부분 만을 분리                      *
+ FFFFFFFF           ;***********************************************************
+ FFFFFFFF           ;PROGRAMMED BY KIM HYUNG SOO
+                
+ 8000           	  ORG     8000H         
+                
+ FFC3           LEDHOU    EQU     0FFC3H    ; 시 표시 주소
+ FFC2           LEDMIN    EQU     0FFC2H    ; 분 표시 주소
+ FFC1           LEDSEC    EQU     0FFC1H    ; 초 표시 주소
+                
+ 8000 7D00      INIT:     MOV     R5,#0
+ 8002 7E00                MOV     R6,#0
+ 8004 7F00                MOV     R7,#0
+                
+ 8006 12800B    CLOCK:    CALL    UPDATE
+ 8009 80FB                SJMP    CLOCK
+                                
+ 800B           ;***********************************************************
+ 800B           ;        시간 표시 변화 루틴                               *
+ 800B           ;***********************************************************
+ 800B 128033    UPDATE:   CALL    DISPLAY        ; 업데이트된 시간 표시
+                
+ 800E BD590D              CJNE    R5,#59H,SEC    ; 초 단위 비교
+ 8011 7D00                MOV     R5,#0          ; 초 변수 R5 초기화
+                           
+ 8013 BE590F              CJNE    R6,#59H,MIN    ; 분 단위 비교
+ 8016 7E00                MOV     R6,#0          ; 분 변수 R6 초기화
+                
+ 8018 BF2311              CJNE    R7,#23H,HOUR   ; 시 단위 비교
+ 801B 7F00                MOV     R7,#0          ; 시 변수 R7 초기화
+                
+ 801D 22        RETPOINT: RET                     ; 상위 루틴 복귀
+                                          
+ 801E           ;**********************************************************
+ 801E           ;        시,분,초 업데이트 루틴                           *
+ 801E           ;**********************************************************
+ 801E ED        SEC:      MOV     A,R5           
+ 801F 2401                ADD     A,#1H          ; 초 단위 증가
+ 8021 D4                  DA      A              ; 십진화 표현
+ 8022 FD                  MOV     R5,A             
+ 8023 80F8                SJMP    RETPOINT       ; RETPOINT 로 분기
+                                                
+ 8025 EE        MIN:      MOV     A,R6     
+ 8026 2401                ADD     A,#1H          ; 분 단위 증가
+ 8028 D4                  DA      A              ; 십진화 표현
+ 8029 FE                  MOV     R6,A              
+ 802A 80F1                SJMP    RETPOINT       ; RETPOINT 로 분기   
+                                
+ 802C EF        HOUR:     MOV     A,R7       
+ 802D 2401                ADD     A,#1H          ; 시 단위 증가
+ 802F D4                  DA      A              ; 십진화 표현
+ 8030 FF                  MOV     R7,A       
+ 8031 80EA                SJMP    RETPOINT       ; RETPOINT 로 분기
+                
+ 8033           ;*********************************************************
+ 8033           ;*        서브 루틴: DISPLAY                             *
+ 8033           ;*             입력: ACC                                 *
+ 8033           ;*             출력; 6 개의 7_SEGMENT                    *
+ 8033           ;*             기능: 6 개의 7_SEGMENT 에 시간 표시       *
+ 8033           ;*                   프로그램 사이즈를 줄이고 컨트롤을   *
+ 8033           ;*                   용이 하게 하기 위하여               *
+ 8033           ;*                   표시 루틴을 하나로 합침             *
+ 8033           ;*        단점 : R5~R7를 항상 디스플레이 변수로 사용     *
+ 8033           ;*********************************************************
+ 8033 90FFC1    DISPLAY:  MOV     DPTR,#LEDSEC    ; 초 표시
+ 8036 ED                  MOV     A, R5              
+ 8037 F0                  MOVX    @DPTR,A           
+                
+ 8038 90FFC2              MOV     DPTR,#LEDMIN    ; 분 표시 
+ 803B EE                  MOV     A, R6           
+ 803C F0                  MOVX    @DPTR,A         
+                
+ 803D 90FFC3              MOV     DPTR,#LEDHOU    ; 시 표시 
+ 8040 EF                  MOV     A, R7           
+ 8041 F0                  MOVX    @DPTR,A         
+ 8042 22                  RET                    
+                
+ 8043           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\시계2.ASM
+
+
+

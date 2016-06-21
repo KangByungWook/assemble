@@ -1,0 +1,17 @@
+ FFFFFFFF           ;이중 루프 DELAY
+                
+ 0000                     ORG      0000H
+ 0000 79FF                MOV      R1,#0FFH ; 1주기
+ 0002 78FF      DELAY1:   MOV      R0,#0FFH ; 1주기
+ 0004 D8FE      DELAY2:   DJNZ     R0,DELAY2; 2*R0 주기
+ 0006 D9FA                DJNZ     R1,DELAY1; (1+2*R0+2)*R1 주기 
+ 0008 80FE                JMP      $
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\DELAY2.ASM
+
+
+

@@ -1,0 +1,26 @@
+ FFFFFFFF           ;         LED 실험3 ~ 순서대로 ON/OFF
+                
+ 8000                     ORG   8000H
+                
+ 8000 74FE                MOV   A,#11111110B ; 누산기를 초기화.
+                
+ 8002 F590      LOOP:     MOV   P1,A         ; 한개의 LED에 불이 들어 온다.
+ 8004 23                  RL    A            ; 다음 LED 로 이동  
+ 8005 12800A              CALL  DELAY
+ 8008 80F8                JMP   LOOP
+                          
+ 800A 78FF      DELAY:    MOV   R0,#0FFH     ; 일정 시간 지연 
+ 800C 79FF      DELAY1:   MOV   R1,#0FFH
+ 800E D9FE      DELAY2:   DJNZ  R1,DELAY2
+ 8010 D8FA                DJNZ  R0,DELAY1
+ 8012 22                  RET 
+ 8013           END                         
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\LED실험\LED3.ASM
+
+
+

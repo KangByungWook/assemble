@@ -1,0 +1,90 @@
+ FFFFFFFF           ;DOT MATRIX 실험6 ~  글자 만들기 "ㄱ" 표시 실험 
+                
+ FFC5           COLGREEN     EQU    0FFC5H  
+ FFC6           COLRED       EQU    0FFC6H   
+ FFC7           ROW          EQU    0FFC7H   
+ 0030           TEMP         EQU    30H
+                
+ 8000                        ORG    8000H
+                
+                ;****************************************************
+                ;*       R0 : DOT ROW 값 저장                       *
+                ;*       R1 : DOT COLUMN GREEN 값 저장              *
+                ;*       R2 : DOT COLUMN RED 값 저장                *
+                ;****************************************************
+                
+ 8000 7900                   MOV    R1,#00H        ; DOT MATRIX LED 끄기
+ 8002 7A00                   MOV    R2,#00H
+ 8004 7800                   MOV    R0,#00H
+                             
+ 8006 12803F                 CALL   DOTCOLG
+ 8009 12804A                 CALL   DOTCOLR
+ 800C 128055                 CALL   DELAY
+                               
+ 800F 7801      START:       MOV    R0,#00000001B
+ 8011 7B00                   MOV    R3,#00H
+ 8013 C3                     CLR    C
+                                    
+ 8014 12802F    LOOP:        CALL   KOR            ; 글자 푠트 읽어 오기 
+ 8017 12804A                 CALL   DOTCOLR        ; 도트 매트릭스 LED 켜기
+ 801A 128055                 CALL   DELAY
+                
+ 801D 7A00                   MOV    R2,#00H
+ 801F 8830                   MOV    TEMP,R0        ; 현재 열의 값 저장
+                
+ 8021 7800                   MOV    R0,#00H
+ 8023 12804A                 CALL   DOTCOLR        ; 도트 매트릭스 LED 끄기  
+                
+ 8026 A830                   MOV    R0,TEMP        ; 현재 열의 값 복원
+ 8028 E8                     MOV    A,R0
+ 8029 33                     RLC    A
+ 802A F8                     MOV    R0,A
+ 802B 40E2                   JC     START
+ 802D 80E5                   JMP    LOOP       
+                             
+ 802F                                              ; 글자 폰트 읽어오는 루틴 
+ 802F 908037    KOR:         MOV    DPTR,#FONT
+ 8032 EB                     MOV    A,R3
+ 8033 93                     MOVC   A,@A+DPTR                 
+ 8034 FA                     MOV    R2,A
+ 8035 0B                     INC    R3 
+ 8036 22                     RET                 
+                
+ 8037           FONT:
+ 8037 007E4040  DB           00H,7EH,40H,40H,40H,40H,40H,00H  
+                
+                
+ 803F 90FFC5    DOTCOLG:     MOV    DPTR,#COLGREEN
+ 8042 E9                     MOV    A,R1
+ 8043 F0                     MOVX   @DPTR,A
+                
+ 8044 90FFC7                 MOV    DPTR,#ROW
+ 8047 E8                     MOV    A,R0
+ 8048 F0                     MOVX   @DPTR,A
+ 8049 22                     RET
+                
+ 804A 90FFC6    DOTCOLR:     MOV    DPTR,#COLRED
+ 804D EA                     MOV    A,R2
+ 804E F0                     MOVX   @DPTR,A
+                
+ 804F 90FFC7                 MOV    DPTR,#ROW
+ 8052 E8                     MOV    A,R0
+ 8053 F0                     MOVX   @DPTR,A
+ 8054 22                     RET 
+                
+ 8055 7F05      DELAY:       MOV    R7,#05H   ; 05
+ 8057 7E40      DELAY1:      MOV    R6,#40H   ; CF
+ 8059 DEFE      DELAY2:      DJNZ   R6,DELAY2
+ 805B DFFA                   DJNZ   R7,DELAY1
+ 805D 22                     RET 
+ 805E           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DOT실험\DOT6.ASM
+
+
+

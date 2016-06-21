@@ -1,0 +1,106 @@
+ FFFFFFFF           ; 타이머0 모드1 을 이용한 시계
+                
+ FFC3           LEDHOU      EQU    0FFC3H ; 왼쪽   2개 7_SEGMENT의 주소        
+ FFC2           LEDMIN      EQU    0FFC2H ; 중간   2개 7_SEGMENT의 주소        
+ FFC1           LEDSEC      EQU    0FFC1H ; 오른쪽 2개 7_SEGMENT의 주소        
+                
+ 0030           VSEC        EQU    30H           
+ 0031           VMIN        EQU    31H          
+ 0032           VHOUR       EQU    32H            
+                
+ 0000                       ORG    0000H
+ 0000 02000E                JMP    START             ; 2
+                
+ 000B                       ORG    000BH
+ 000B 020031                JMP    SERVICE           ; 2
+                  
+ 000E 758160    START:      MOV    SP   ,#60H        ; 2       
+ 0011 7C64                  MOV    R4   ,#100        ; 1        
+ 0013 753000                MOV    VSEC ,#0H         ; 2       
+ 0016 753100                MOV    VMIN ,#0H         ; 2       
+ 0019 753200                MOV    VHOUR,#0H         ; 2       
+ 001C 120072                CALL   DISPLAY           ; 2         
+ 001F                                                ;30 
+ 001F 758911                MOV    TMOD , #00010001B ; 2
+ 0022 75A882                MOV    IE   , #10000010B ; 2 
+ 0025 D2A9                  SETB   ET0               ; 1
+ 0027 758CDC                MOV    TH0  , #0DCH      ; 2
+ 002A 758A2F                MOV    TL0  , #2FH       ; 2
+ 002D D28C                  SETB   TCON.TR0          ; 1
+ 002F                                                ;40 
+ 002F                       ; FFFF - DC2F = 23D0 =  9168
+ 002F                       ; FFFF 에서 00000로 바뀔때 오버플로우가 발생
+ 002F                       ; JMP $ 가 한번더 수행되어야 한다. 그래야 TF 가 SET
+ 002F 80FE                  JMP    $                 ; 2 
+ 0031                                             ; 9210    
+ 0031 C28C      SERVICE:    CLR    TCON.TR0          ; 1  << SERVICE 루틴에 왔을때 9216  
+ 0033 758CDC                MOV    TH0   , #0DCH     ; 2    
+ 0036 758A0C                MOV    TL0   , #0CH      ; 2  
+ 0039 D28C                  SETB   TCON.TR0          ; 1     
+ 003B                       ; FFFF - DC0C = 23F3 >> 9203
+ 003B                       ;  세팅까지             9208 
+ 003B                       ; DJNZ 가 하번더 수행되어야 한다. 그래야 TF 가 SET
+ 003B                                             ; 9210  
+ 003B DC05                  DJNZ   R4 , CONTINUE     ; 2
+ 003D 120043                CALL   UPDATE
+ 0040 7C64                  MOV    R4 , #100              
+ 0042 32        CONTINUE:   RETI                     ; 2 
+                
+                
+ 0043 00        UPDATE:     NOP
+ 0044 7830                  MOV    R0 , #VSEC      
+                
+ 0046 B65905                CJNE   @R0 ,#59H,SEC 
+ 0049 7600                  MOV    @R0 , #0      
+ 004B 08                    INC    R0         
+ 004C 8002                  SJMP   MINCHECK   
+                
+ 004E 801B      SEC:        SJMP   ADDONE       
+                                         
+ 0050 B65906    MINCHECK:   CJNE   @R0 ,#59H,MIN      
+ 0053 7600                  MOV    @R0 , #0          
+ 0055 08                    INC    R0               
+ 0056 02005C                JMP    HOURCHECK        
+                
+ 0059 02006B    MIN:        JMP    ADDONE            
+                
+ 005C B62305    HOURCHECK:  CJNE   @R0 , #23H,HOUR     
+ 005F 7600                  MOV    @R0 , #0          
+ 0061                       ;INC R0                
+ 0061 020067                JMP    RETPOINT          
+                
+ 0064 02006B    HOUR:       JMP    ADDONE           
+                
+                
+ 0067 120072    RETPOINT:   CALL   DISPLAY           
+ 006A 22                    RET                     
+                
+ 006B E6        ADDONE:     MOV    A, @R0            
+ 006C 2401                  ADD    A, #1             
+ 006E D4                    DA     A                  
+ 006F F6                    MOV    @R0 , A            
+ 0070 80F5                  SJMP   RETPOINT           
+                                          
+ 0072 90FFC1    DISPLAY:    MOV    DPTR,#LEDSEC  ;2     
+ 0075 E530                  MOV    A, VSEC       ;1     
+ 0077 F0                    MOVX   @DPTR,A       ;2   
+                
+ 0078 90FFC2                MOV    DPTR,#LEDMIN  ;2     
+ 007B E531                  MOV    A, VMIN       ;1     
+ 007D F0                    MOVX   @DPTR,A       ;2    
+                
+ 007E 90FFC3                MOV    DPTR,#LEDHOU  ;2     
+ 0081 E532                  MOV    A, VHOUR      ;1    
+ 0083 F0                    MOVX   @DPTR,A       ;2    
+ 0084 22                    RET                  ;2              
+ 0085                                            ;17 
+ 0085           END               
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\CLKINT.ASM
+
+
+

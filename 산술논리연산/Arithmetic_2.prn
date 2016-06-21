@@ -1,0 +1,43 @@
+ FFFFFFFF           ;         산술 연산 시험 
+                
+ 8000                     ORG   8000H
+                
+ 8000 7476                MOV   A,#76H    ;0111_0110    118
+ 8002 2457                ADD   A,#57H    ;0101_0111   + 87
+ 8004                                     ;Over Flow 발생  
+ 8004           ;
+ 8004 7486                MOV   A,#86H      ;1000_0110  -122
+ 8006 7D67                MOV   R5,#67H     ;0110_0111  +103
+ 8008 2D                  ADD   A,R5        ;1110_1101  -19
+ 8009           ;
+ 8009 7478                MOV   A,#78H
+ 800B 752088              MOV   20H,#88H
+ 800E 7920                MOV   R1,#20H
+ 8010 37                  ADDC  A,@R1
+                
+ 8011           ;      
+ 8011 7478                MOV   A,#78H      ;0111_1000  +120
+ 8013 752088              MOV   20H,#88H    ;1000_1000  -120
+ 8016 7920                MOV   R1,#20H
+ 8018 75D080              MOV   0D0H,#80H   ;강제로 PSW의 Carry에 1을 넣음.
+ 801B 37                  ADDC  A,@R1       ;Overflow 발생, AuxCarry 발생,  1의갯수
+ 801C           ;
+ 801C 7422                MOV   A,#22H     
+ 801E 756035              MOV   60H,#35H
+ 8021 9560                SUBB  A,60H
+                
+                
+                
+ 00DB                     ORG  0DBH
+ 00DB 80                  DB   80H  ;PSW의 Carry 1로 세팅
+                
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: C:\PROGRAM FILES (X86)\MIVISION\WIN8051\8051실험(학생소스)\산술논리연산\ARITHMETIC_2.ASM
+
+
+

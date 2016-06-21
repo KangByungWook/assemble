@@ -1,0 +1,34 @@
+ FFEF           BUZZER    EQU   0FFEFH
+                
+ 8000                     ORG   8000H 
+                
+ 8000 7480      LOOP:     MOV   A,#10000000B
+ 8002 128015              CALL  BUZ
+ 8005 12801A              CALL  DELAY
+                
+ 8008 7400                MOV   A,#00000000B
+ 800A 128015              CALL  BUZ
+ 800D 12801A              CALL  DELAY
+ 8010 12801A              CALL  DELAY
+                           
+ 8013 80EB                JMP   LOOP        
+                
+ 8015 90FFEF    BUZ:      MOV   DPTR,#BUZZER 
+ 8018 F0                  MOVX  @DPTR,A
+ 8019 22                  RET
+                
+ 801A 7FFF      DELAY:    MOV   R7,#0FFH
+ 801C 7EFF      DELAY1:   MOV   R6,#0FFH
+ 801E DEFE      DELAY2:   DJNZ  R6,DELAY2
+ 8020 DFFA                DJNZ  R7,DELAY1
+ 8022 22                  RET 
+ 8023           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DC_MOTOR실험\BUZ1.ASM
+
+
+

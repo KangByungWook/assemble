@@ -1,0 +1,49 @@
+ FFFFFFFF           ; 프로그램 시작번지를 알려 주는 어셈블러 지시어
+ 0000 028000           JMP  START            ; 
+ 0003           ; 메인 프로그램 시작
+                
+ 8000                  ORG  8000H           ; 다음 명령어부터 어드레스를 08000H로 설정
+ 8000 758140    START: MOV  SP,#40H
+ 8003                  ;각 레지스터에 특정값을 로드한다.
+ 8003 901432           MOV  DPTR,#1432H
+ 8006 7441             MOV  A,#041H
+ 8008 75F072           MOV  B,#72H
+ 800B 752095           MOV  20H,#95H
+ 800E 7859             MOV  R0,#59H
+ 8010 7938             MOV  R1,#38H
+ 8012                  ; 스택에 각 레지스터값을 푸시
+ 8012 C082             PUSH DPL
+ 8014 C083             PUSH DPH
+ 8016 C0E0             PUSH ACC
+ 8018 C0F0             PUSH B
+ 801A C020             PUSH 20H
+ 801C C000             PUSH 00H
+ 801E C001             PUSH 01H
+ 8020                  ; 각 레지스터의 값을 변경
+ 8020 C520             XCH  A,20H
+ 8022 C5F0             XCH  A,B
+ 8024 C582             XCH  A,DPL
+ 8026 C583             XCH  A,DPH
+ 8028 C8               XCH  A,R0
+ 8029 C9               XCH  A,R1
+ 802A                  ; 푸시 순서와는 반대로 저장된 값을 팝
+ 802A D001             POP 01H
+ 802C D000             POP 00H
+ 802E D020             POP 20H
+ 8030 D0F0             POP B
+ 8032 D0E0             POP ACC
+ 8034 D083             POP DPH
+ 8036 D082             POP DPL
+ 8038                  ;
+ 8038 80C6             JMP START
+ 803A                  ;
+ 803A                  END                ; 프로그랩 끝을 알려 주는 어셈블러 지시어
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: \\MAC\HOME\DESKTOP\ASSEMBLE\MOVE실험\CALL_STACK.ASM
+
+
+

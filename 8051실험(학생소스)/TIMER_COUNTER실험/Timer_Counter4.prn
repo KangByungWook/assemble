@@ -1,0 +1,52 @@
+ FFFFFFFF           ;타이머/카운터를 이용한 실험 ~ 타이머/카운터1 모드2 를 이용한 실험
+                
+ FFC3           SEGR        EQU      0FFC3H
+ FFC2           SEGM        EQU      0FFC2H
+ FFC1           SEGL        EQU      0FFC1H
+                 
+ 8000                       ORG      8000H
+                         
+ 8000 7400      MAIN:       MOV      A,#00H          
+ 8002 128021                CALL     CLEAR          ; 초기화 
+                
+ 8005 758966    	    MOV      TMOD,#01100110B; GATE =0,COUNTER MODE,MODE 10
+ 8008 75A888                MOV      IE,#10001000B  ; ENABLE ONLY TIMER 1 
+                
+ 800B 758DFF                MOV      TH1,#0FFH           
+ 800E 758BFF                MOV      TL1,#0FFH      ; 타이머 레지스터 세팅
+                
+ 8011 D28E                  SETB     TCON.TR1       ; 타이머 동작          
+                
+ 8013 80FE                  JMP      $
+                
+ 8015 128029    SERVICE:    CALL     DIS            
+ 8018 04                    INC      A              
+                
+ 8019 B4FF02                CJNE     A,#0FFH,PATH1
+ 801C 7400                  MOV      A,#00H
+                
+ 801E D28C      PATH1:      SETB     TCON.4
+ 8020 32                    RETI 
+                
+ 8021 90FFC3    CLEAR:      MOV      DPTR,#SEGR
+ 8024 F0                    MOVX     @DPTR,A
+ 8025 90FFC2                MOV      DPTR,#SEGM
+ 8028 F0                    MOVX     @DPTR,A       
+                
+ 8029 90FFC1    DIS:        MOV      DPTR,#SEGL
+ 802C F0                    MOVX     @DPTR,A
+ 802D 22                    RET
+                
+ 9F1B                       ORG      9F1BH
+ 9F1B 028015                JMP      SERVICE
+                
+ 9F1E           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\TIMER_COUNTER실험\TIMER_COUNTER4.ASM
+
+
+

@@ -1,0 +1,43 @@
+ FFFFFFFF           ;인터럽터 실험1 ~ 인터럽터를 이용한 LED실험1
+                
+ 8000                     ORG      8000H
+                          
+ 8000 758140    MAIN:     MOV      SP,#40H
+ 8003 D2B8                SETB     PX0    ; 외부 인터럽터 우선순위 SET        
+ 8005 D2A8                SETB     EX0    ; 외부 인터럽터0 인에이블
+ 8007 D288                SETB     IT0    ; Edge Trigger MODE
+ 8009 D2AF                SETB     EA     ; 전체 인터럽터 인에이블
+                 
+ 800B 7590FF    LOOP:     MOV      P1,#0FFH  ; LED 끄기   
+ 800E 128028              CALL     DELAY 
+ 8011 759000              MOV      P1,#00H   ; LED 켜기
+ 8014 128028              CALL     DELAY
+ 8017 80F2                JMP      LOOP 
+                
+ 8019 74FE      SERVICE:  MOV      A,#11111110B ; 누산기를 초기화.
+ 801B 128028    LOOPS:    CALL     DELAY
+ 801E 128028              CALL     DELAY
+ 8021 F590                MOV      P1, A          ; 한개의 LED에 불이 들어 온다.
+ 8023 23                  RL       A              ; 다음 LED 로 이동  
+ 8024 B4FEF4              CJNE     A,#11111110B,LOOPS
+ 8027 32                  RETI 
+                          
+ 8028 78FF      DELAY:    MOV      R0,#0FFH
+ 802A 79FF      DELAY1:   MOV      R1,#0FFH
+ 802C D9FE      DELAY2:   DJNZ     R1,DELAY2
+ 802E D8FA                DJNZ     R0,DELAY1  
+ 8030 22                  RET 
+                
+ 9F03                     ORG      9F03H
+ 9F03 028019              JMP      SERVICE 
+                
+ 9F06           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\INTERRUPT실험\INT1.ASM
+
+
+

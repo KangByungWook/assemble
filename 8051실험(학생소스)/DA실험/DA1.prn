@@ -1,0 +1,32 @@
+ FFFFFFFF           ; DA 실험 1 ~ 사각형파 만들기
+                
+ 8000                           ORG   8000H
+                         
+ 8000 7400      LOOP:           MOV   A,#00H  ; 00000000 ~ 0[V] 변환                                            
+ 8002 128012                    CALL  DACONVERT
+ 8005 128017                    CALL  DELAY
+ 8008 74FF                      MOV   A,#0FFH ; 11111111 ~ 5[V] 변환
+ 800A 128012                    CALL  DACONVERT
+ 800D 128017                    CALL  DELAY
+ 8010 80EE                      JMP   LOOP
+                
+ 8012 90FFD1    DACONVERT:      MOV   DPTR,#0FFD1H
+ 8015 F0                        MOVX  @DPTR,A  ; D/A 변환 쓰기
+ 8016 22                        RET
+                
+ 8017 7F10      DELAY:          MOV   R7,#10H
+ 8019 7EFF      DELAY1:         MOV   R6,#0FFH
+ 801B DEFE      DELAY2:         DJNZ  R6,DELAY2
+ 801D DFFA                      DJNZ  R7,DELAY1
+ 801F 22                        RET           
+ 8020           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DA실험\DA1.ASM
+
+
+

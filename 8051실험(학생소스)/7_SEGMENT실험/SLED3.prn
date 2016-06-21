@@ -1,0 +1,47 @@
+ FFFFFFFF           ; 6개의 7_SEGMENT에 깜빡 이기
+                
+ FFC3           SEGL            EQU    0FFC3H
+ FFC2           SEGM            EQU    0FFC2H
+ FFC1           SEGR            EQU    0FFC1H
+                
+ 8000                           ORG    8000H
+                                
+ 8000 7400      LOOP:           MOV    A,#00H      ; 켜기 
+ 8002 128018                    CALL   SEG
+ 8005 128025                    CALL   DELAY
+ 8008 128025                    call   delay
+                                
+ 800B 74FF                      MOV    A,#0FFH     ; 끄기
+ 800D 128018                    CALL   SEG
+ 8010 128025                    CALL   DELAY
+ 8013 128025                    call   delay
+                               
+ 8016 80E8                      JMP    LOOP
+                
+ 8018 90FFC3    SEG:            MOV    DPTR,#SEGL  ;왼쪽 2개 선택
+ 801B F0                        MOVX   @DPTR,A      
+                
+ 801C 90FFC2                    MOV    DPTR,#SEGM  ;중간 2개 선택
+ 801F F0                        MOVX   @DPTR,A     
+                
+ 8020 90FFC1                    MOV    DPTR,#SEGR  ;오른쪽 2개 선택
+ 8023 F0                        MOVX   @DPTR,A     
+ 8024 22                        RET
+                
+ 8025 78FF      DELAY:          MOV    R0,#0FFH
+ 8027 79FF      DELAY1:         MOV    R1,#0FFH
+ 8029 D9FE      DELAY2:         DJNZ   R1,DELAY2
+ 802B D8FA                      DJNZ   R0,DELAY1
+ 802D 22                        RET 
+                
+ 802E           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\7_SEGMENT실험\SLED3.ASM
+
+
+

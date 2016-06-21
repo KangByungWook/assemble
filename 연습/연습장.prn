@@ -1,0 +1,21 @@
+ 0000           	ORG 00H
+ 0000 7400      	MOV A, #00H
+ 0002 900000    	MOV DPTR, #00H
+ 0005 020008    	JMP START
+                
+ 0008           	ORG 08H
+ 0008           START: 
+ 0008 2401      	ADD A, #1
+ 000A 80FC      	JMP START
+                
+ 000C 31        ABC: DB '1'
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: \\MAC\HOME\DESKTOP\ASSEMBLE\연습\연습장.ASM
+
+
+

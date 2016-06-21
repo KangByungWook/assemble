@@ -1,0 +1,112 @@
+ FFFFFFFF           ; A/D 실험3 ~ 거리 측정 실험
+                
+ FFD1           DAC       EQU      0FFD1H
+ FFD0           ADC       EQU      0FFD0H
+                
+ 8000                     ORG      8000H 
+                                                      
+ 8000 90FFFF    LOOP:     MOV      DPTR,#0FFFFH
+ 8003 7401                MOV      A,#01H
+ 8005 F0                  MOVX     @DPTR,A    ; 발광소자 동작.
+                                   
+ 8006 90FFD0              MOV      DPTR,#ADC
+ 8009 E0                  MOVX     A,@DPTR    ; A/D 입력을 읽기
+                
+ 800A F8                  MOV      R0,A
+                
+ 800B 128013              CALL     PORT       ; 포트1의 LED로 결과 표시
+ 800E 128089              CALL     DELAY
+ 8011 80ED                JMP      LOOP
+                
+ 8013 C3        PORT:     CLR      C
+ 8014 E8        CHECK1:   MOV      A,R0
+ 8015 B40004              CJNE     A,#00H,CHECK2   
+ 8018 7590FF              MOV      P1,#11111111B
+ 801B 22                  RET 
+                
+ 801C B41004    CHECK2:   CJNE     A,#00010000B,CHECK3
+ 801F 7590FE              MOV      P1,#11111110B
+ 8022 22                  RET
+                
+ 8023 5005      CHECK3:   JNC      CHECK4
+ 8025 C3                  CLR      C 
+ 8026 7590FE              MOV      P1,#11111110B
+ 8029 22                  RET
+                
+ 802A B42004    CHECK4:   CJNE     A,#00100000B,CHECK5
+ 802D 7590FC              MOV      P1,#11111100B
+ 8030 22                  RET
+                
+ 8031 5005      CHECK5:   JNC      CHECK6
+ 8033 C3                  CLR      C
+ 8034 7590FC              MOV      P1,#11111100B
+ 8037 22                  RET
+                
+ 8038 B43004    CHECK6:   CJNE     A,#00110000B,CHECK7
+ 803B 7590F8              MOV      P1,#11111000B
+ 803E 22                  RET
+                
+ 803F 5005      CHECK7:   JNC      CHECK8
+ 8041 C3                  CLR      C
+ 8042 7590F8              MOV      P1,#11111000B
+ 8045 22                  RET
+                
+ 8046 B44004    CHECK8:   CJNE     A,#01000000B,CHECK9
+ 8049 7590F0              MOV      P1,#11110000B
+ 804C 22                  RET
+                
+ 804D 5005      CHECK9:   JNC      CHECK10
+ 804F C3                  CLR      C
+ 8050 7590F0              MOV      P1,#11110000B
+ 8053 22                  RET
+                
+ 8054 B45004    CHECK10:  CJNE     A,#01010000B,CHECK11
+ 8057 7590E0              MOV      P1,#11100000B
+ 805A 22                  RET
+                
+ 805B 5005      CHECK11:  JNC      CHECK12
+ 805D C3                  CLR      C
+ 805E 7590E0              MOV      P1,#11100000B
+ 8061 22                  RET
+                
+ 8062 B46004    CHECK12:  CJNE     A,#01100000B,CHECK13
+ 8065 7590C0              MOV      P1,#11000000B
+ 8068 22                  RET
+                
+ 8069 5005      CHECK13:  JNC      CHECK14
+ 806B C3                  CLR      C
+ 806C 7590C0              MOV      P1,#11000000B
+ 806F 22                  RET
+                
+ 8070 B47004    CHECK14:  CJNE     A,#01110000B,CHECK15
+ 8073 759080              MOV      P1,#10000000B
+ 8076 22                  RET
+                
+ 8077 5005      CHECK15:  JNC      CHECK16
+ 8079 C3                  CLR      C
+ 807A 759080              MOV      P1,#10000000B
+ 807D 22                  RET
+                
+ 807E B4FF04    CHECK16:  CJNE     A,#111111111B,CHECK17
+ 8081 759000              MOV      P1,#00000000B
+ 8084 22                  RET
+                
+ 8085 759080    CHECK17:  MOV      P1,#10000000B
+ 8088 22                  RET
+                
+ 8089 7EFF      DELAY:    MOV      R6,#0FFH 
+ 808B 7FFF      DELAY1:   MOV      R7,#0FFH
+ 808D DFFE      DELAY2:   DJNZ     R7,DELAY2
+ 808F DEFA                DJNZ     R6,DELAY1
+ 8091 22                  RET
+ 8092           END                       
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\AD실험\AD3.ASM
+
+
+

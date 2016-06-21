@@ -1,0 +1,94 @@
+ FFFFFFFF           ;DOT MATRIX 실험2 ~  각각의 행 전체 스캔 실험 
+                
+ FFC5           COLGREEN     EQU    0FFC5H  
+ FFC6           COLRED       EQU    0FFC6H   
+ FFC7           ROW          EQU    0FFC7H   
+                
+ 8000                        ORG    8000H
+                
+                ;****************************************************
+                ;*       R0 : DOT ROW 값 저장                       *
+                ;*       R1 : DOT COLUMN GREEN 값 저장              *
+                ;*       R2 : DOT COLUMN RED 값 저장                *
+                ;****************************************************
+                
+ 8000 7900                   MOV    R1,#00H        ; DOT MATRIX LED 끄기
+ 8002 7A00                   MOV    R2,#00H
+ 8004 7800                   MOV    R0,#00H
+                              
+ 8006 128041                 CALL   DOTCOLG
+ 8009 12804C                 CALL   DOTCOLR
+ 800C 128057                 CALL   DELAY
+                               
+ 800F 7A00      INIT1:       MOV    R2,#00000000B
+ 8011 7800                   MOV    R0,#00000000B    
+ 8013 12804C                 CALL   DOTCOLR        ; RED COLOR 끄기
+                
+ 8016 79FF                   MOV    R1,#11111111B  ; 모든 열 ON
+ 8018 7801                   MOV    R0,#00000001B  ; 첫번째 행 ON 
+ 801A C3                     CLR    C                
+                
+ 801B 128041    LOOP1:       CALL   DOTCOLG        ; GREEN COLOR 켜기
+ 801E 128057                 CALL   DELAY
+                               
+ 8021 E8                     MOV    A,R0
+ 8022 33                     RLC    A              ; 다음 행으로 이동 
+ 8023 F8                     MOV    R0,A
+                
+ 8024 4002                   JC     INIT2          ; 색깔 바꾸기 
+ 8026 80F3                   JMP    LOOP1          ; 계속 반복하기     
+                
+ 8028 7900      INIT2:       MOV    R1,#00000000B
+ 802A 7800                   MOV    R0,#00000000B
+ 802C 128041                 CALL   DOTCOLG        ; GREEN COLOR 끄기
+                
+ 802F 7AFF                   MOV    R2,#11111111B  ; 모든 열 ON 
+ 8031 7801                   MOV    R0,#00000001B  ; 첫번째 행 ON
+ 8033 C3                     CLR    C
+                             
+ 8034 12804C    LOOP2:       CALL   DOTCOLR        ; RED COLOR 켜기
+ 8037 128057                 CALL   DELAY
+                
+ 803A E8                     MOV    A,R0
+ 803B 33                     RLC    A              ; 다음 행으로 이동
+ 803C F8                     MOV    R0,A
+                
+ 803D 40D0                   JC     INIT1          ; 색깔 바꾸기
+ 803F 80F3                   JMP    LOOP2          ; 계속 반복하기 
+                                         
+ 8041 90FFC5    DOTCOLG:     MOV    DPTR,#COLGREEN
+ 8044 E9                     MOV    A,R1
+ 8045 F0                     MOVX   @DPTR,A
+                
+ 8046 90FFC7                 MOV    DPTR,#ROW
+ 8049 E8                     MOV    A,R0
+ 804A F0                     MOVX   @DPTR,A
+ 804B 22                     RET
+                
+ 804C 90FFC6    DOTCOLR:     MOV    DPTR,#COLRED
+ 804F EA                     MOV    A,R2
+ 8050 F0                     MOVX   @DPTR,A
+                
+ 8051 90FFC7                 MOV    DPTR,#ROW
+ 8054 E8                     MOV    A,R0
+ 8055 F0                     MOVX   @DPTR,A
+ 8056 22                     RET 
+                
+ 8057 7F02      DELAY:       MOV    R7,#02H
+ 8059 7EFF      DELAY1:      MOV    R6,#0FFH
+ 805B 7DFF      DELAY2:      MOV    R5,#0FFH
+ 805D DDFE      DELAY3:      DJNZ   R5,DELAY3
+ 805F DEFA                   DJNZ   R6,DELAY2
+ 8061 DFF6                   DJNZ   R7,DELAY1
+ 8063 22                     RET 
+ 8064           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DOT실험\DOT2.ASM
+
+
+

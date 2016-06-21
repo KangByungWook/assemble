@@ -1,0 +1,27 @@
+ FFFFFFFF           ;         MOV 실험 
+                
+ 8000                     ORG   8000H
+                
+ 8000 787E                MOV   R0,#07EH ; R0 값 대입   
+                      
+ 8002 753027              MOV   30H,#27H
+ 8005 E530                MOV   A,30H
+                
+                
+ 8007 753155              MOV   31H,#55H
+ 800A 7831                MOV   R0,#31H
+ 800C 7666                MOV   @R0,#66H
+                
+                
+                
+                        
+ 800E           END            
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: \\MAC\HOME\DESKTOP\ASSEMBLE\MOVE실험\MOV_1.ASM
+
+
+

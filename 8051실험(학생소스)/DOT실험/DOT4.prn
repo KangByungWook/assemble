@@ -1,0 +1,84 @@
+ FFFFFFFF           ;DOT MATRIX 실험4 ~  열방향으로 하나씩 스캔 실험 
+                
+ FFC5           COLGREEN     EQU    0FFC5H  
+ FFC6           COLRED       EQU    0FFC6H   
+ FFC7           ROW          EQU    0FFC7H   
+                
+ 8000                        ORG    8000H
+                
+                ;****************************************************
+                ;*       R0 : DOT ROW 값 저장                       *
+                ;*       R1 : DOT COLUMN GREEN 값 저장              *
+                ;*       R2 : DOT COLUMN RED 값 저장                *
+                ;****************************************************
+                
+ 8000 7900                   MOV    R1,#00H        ; DOT MATRIX LED 끄기
+ 8002 7A00                   MOV    R2,#00H
+ 8004 7800                   MOV    R0,#00H
+                            
+ 8006 128032                 CALL   DOTCOLG
+ 8009 12803D                 CALL   DOTCOLR
+ 800C 128048                 CALL   DELAY
+                               
+ 800F 7A00      INIT:        MOV    R2,#00000000B
+ 8011 7800                   MOV    R0,#00000000B    
+ 8013 12803D                 CALL   DOTCOLR        ; RED COLOR 끄기
+                
+ 8016 7901                   MOV    R1,#00000001B  ; 첫번째 열 ON
+ 8018 7801                   MOV    R0,#00000001B  ; 첫번째 행 ON 
+ 801A C3                     CLR    C                
+                
+ 801B 128032    DROW:        CALL   DOTCOLG        ; GREEN COLOR 켜기
+ 801E 128048                 CALL   DELAY
+                               
+ 8021 E8                     MOV    A,R0
+ 8022 33                     RLC    A              ; 다음 행으로 이동 
+ 8023 F8                     MOV    R0,A
+                
+ 8024 4002                   JC     DCOL           ; 열 스캔 으로 분기 
+ 8026 80F3                   JMP    DROW           ; 행 스캔 반복 
+                
+ 8028 7801      DCOL:        MOV    R0,#00000001B  ; 첫번째 행으로 초기화
+ 802A C3                     CLR    C
+ 802B E9                     MOV    A,R1
+ 802C 33                     RLC    A              ; 다음 열로 이동  
+ 802D F9                     MOV    R1,A
+ 802E 40DF                   JC     INIT           ; 스캔이 끝났으면 다시 처음 부터
+ 8030 80E9                   JMP    DROW           ; 다음 열에서 스캔 시작
+                
+ 8032 90FFC5    DOTCOLG:     MOV    DPTR,#COLGREEN
+ 8035 E9                     MOV    A,R1
+ 8036 F0                     MOVX   @DPTR,A
+                
+ 8037 90FFC7                 MOV    DPTR,#ROW
+ 803A E8                     MOV    A,R0
+ 803B F0                     MOVX   @DPTR,A
+ 803C 22                     RET
+                
+ 803D 90FFC6    DOTCOLR:     MOV    DPTR,#COLRED
+ 8040 EA                     MOV    A,R2
+ 8041 F0                     MOVX   @DPTR,A
+                
+ 8042 90FFC7                 MOV    DPTR,#ROW
+ 8045 E8                     MOV    A,R0
+ 8046 F0                     MOVX   @DPTR,A
+ 8047 22                     RET 
+                
+ 8048 7F02      DELAY:       MOV    R7,#02H
+ 804A 7EFF      DELAY1:      MOV    R6,#0FFH
+ 804C 7DFF      DELAY2:      MOV    R5,#0FFH
+ 804E DDFE      DELAY3:      DJNZ   R5,DELAY3
+ 8050 DEFA                   DJNZ   R6,DELAY2
+ 8052 DFF6                   DJNZ   R7,DELAY1
+ 8054 22                     RET 
+ 8055           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DOT실험\DOT4.ASM
+
+
+

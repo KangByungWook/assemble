@@ -1,0 +1,37 @@
+ FFFFFFFF           ;         산술 연산 시험 
+ FFFFFFFF           ;         1334H - 12EFH  
+ FFFFFFFF           ;         4916D - 4847D = 69D (45H)
+                
+                
+ 8000                     ORG   8000H
+                
+ 8000 754034              MOV   40H,#34H
+ 8003 754113              MOV   41H,#13H
+                
+                
+ 8006 7542EF              MOV   42H,#0EFH   
+ 8009 754312              MOV   43H,#12H
+                 
+ 800C                     ;하위 바이트 먼저 더함.
+ 800C C3                  CLR   C
+ 800D E540                MOV   A,40H                   
+ 800F 9542                SUBB  A,42H  ;빌림수(Borrow)발생       34H - EFH = FFFF45H
+                 
+ 8011 F540                MOV   40H,A  ; 40H 번지에 저장 = 40H 번지의 내용 + 42H 번지의 내용  
+                       
+                
+ 8013                     ;상위 바이트 먼저 더함.
+ 8013 E541                MOV   A,41H
+ 8015 9543                SUBB  A,43H  ;캐리발생       13H - 12H - 1H(Borrow) = 25H (10_0101B)
+                 
+ 8017 F541                MOV   41H,A  ; 41H 번지에 저장 = 401 번지의 내용 + 43H 번지의 내용  + Carry
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: C:\PROGRAM FILES (X86)\MIVISION\WIN8051\8051실험(학생소스)\산술논리연산\ARITHMETIC_4.ASM
+
+
+

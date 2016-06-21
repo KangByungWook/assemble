@@ -1,0 +1,56 @@
+ FFFFFFFF           ; DC MOTOR 실험1 ~  정회전 - 정지 - 역회전 
+                
+ 8000                     ORG      8000H
+                
+ 8000 7406      LOOP:     MOV      A,#00000110B ; 모터 정회전
+ 8002 128028              CALL     MOTOR        
+                
+ 8005 12802D              CALL     DELAY        ; 일정 시간 지연 
+                
+ 8008 7400                MOV      A,#00000000B ; 모터 회전 정지                            
+ 800A 128028              CALL     MOTOR         
+                         
+ 800D 12802D              CALL     DELAY
+ 8010 12802D              CALL     DELAY        ; 일정 시간 지연 
+                        
+ 8013 7405                MOV      A,#00000101B ; 모터 역회전 
+ 8015 128028              CALL     MOTOR         
+                
+ 8018 12802D              CALL     DELAY        ; 일정 시간 지연 
+                
+ 801B 7400                MOV      A,#00000000B ; 모터 회전 정지                                                 
+ 801D 128028              CALL     MOTOR                   
+                
+ 8020 12802D              CALL     DELAY
+ 8023 12802D              CALL     DELAY        ; 일정 시간 지연               
+                
+ 8026 80D8                JMP      LOOP         ; 반복을 위한 분기
+                
+ 8028           ;****************************************************
+ 8028           ;*        서브 루틴 : MOTOR                         *
+ 8028           ;*             입력 ; A                             *
+ 8028           ;*             출력 : 없음                          *
+ 8028           ;*             기능 : 입력에 따라 모터의 정,역회전  * 
+ 8028           ;*                    정지 동작 수행                *
+ 8028           ;****************************************************
+ 8028 90FFEF    MOTOR:    MOV      DPTR,#0FFEFH 
+ 802B F0                  MOVX     @DPTR,A
+ 802C 22                  RET
+                           
+ 802D 7F05      DELAY:    MOV      R7,#05H      ; 시간 지연 루틴
+ 802F 7EFF      DELAY1:   MOV      R6,#0FFH
+ 8031 7DFF      DELAY2:   MOV      R5,#0FFH
+ 8033 DDFE      DELAY3:   DJNZ     R5,DELAY3
+ 8035 DEFA                DJNZ     R6,DELAY2
+ 8037 DFF6                DJNZ     R7,DELAY1
+ 8039 22                  RET
+ 803A           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DC_MOTOR실험\DC1.ASM
+
+
+

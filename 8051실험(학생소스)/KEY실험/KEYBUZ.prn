@@ -1,0 +1,148 @@
+ FFFFFFFF           ; 키 패드 인터페이스 실험1 
+ 8000                     ORG      8000H   
+ FFF0           DATAOUT   EQU      0FFF0H  ;데이터 아웃의 주소
+ FFF1           DATAIN    EQU      0FFF1H  ;데이터 인의 주소
+ FFC1           DLED      EQU      0FFC1H  ;오른쪽 2개의 7_SEGMENT 주소
+ FFC2           ALED0     EQU      0FFC2H  ;중간 2개의 7_SEGMENT 주소
+ FFC3           ALED1     EQU      0FFC3H  ;왼쪽 2개의 7_SEGMENT 주소
+ FFEF           BUZZER    EQU      0FFEFH
+                
+ 8000 128005    LOOP:     CALL     SCANN   ; 스캔 루틴 호출 
+ 8003 80FB                JMP      LOOP    ; 반복 수행을 위한 분기 
+                
+ 8005           ;키 패드 인터페이스 예제
+                
+ 8005 C0D0      SCANN:     PUSH     PSW     ; PSW 값을 스택에 보관
+ 8007 D2D4                 SETB     PSW.4   ; 뱅크3 레지스터 사용
+ 8009 D2D3                 SETB     PSW.3
+                
+ 800B 7900      INITIAL:   MOV      R1,#00H       ; R1의 초기화
+ 800D 74EF                 MOV      A,#11101111B  ; 데이터 아웃의 초기값
+                
+ 800F F8        COLSCAN:   MOV      R0,A          ; R0에 데이터 아웃 값 보관 
+ 8010 09                   INC      R1            ; R1 열의 값 보관 
+ 8011 128045               CALL     SUBKEY        ; 키 패드 입력 상태 조사
+ 8014 541F                 ANL      A,#00011111B  ; 상위 3비트 제거
+ 8016 641F                 XRL      A,#00011111B  ; XRL 연산000111111
+ 8018 7007                 JNZ      RSCAN         ; 누산기 값이 0 이 아니면, 행 스캔
+ 801A E8                   MOV      A,R0           
+ 801B D3                   SETB     C
+ 801C 13                   RRC      A             ; 다음 열로 이동
+ 801D 50EC                 JNC      INITIAL       ; 모든 열을 스캔했으면, 다시 시작 
+ 801F 80EE                 JMP      COLSCAN       ; 다음 열의 스캔을 위한 분기
+                
+                
+ 8021 7A00      RSCAN:     MOV      R2,#00H       ; R2 행의 값 보관
+ 8023 13        ROWSCAN:   RRC      A             ; 어느 행이 "1" 로 바뀌었는지 조사
+ 8024 4003                 JC       MATRIX        ; 캐리가 발생하면, MATRIX로 분기
+ 8026 0A                   INC      R2            ; 캐리가 발생하지 않으면, 다음 행으로 이동
+ 8027 80FA                 JMP      ROWSCAN       ; 다음 행의 스캔을 위한 분기
+                
+ 8029 EA        MATRIX:    MOV      A,R2          ; R2 에는 행의 값 보존
+ 802A 75F005               MOV      B,#05H        ; 1행은 5열로 이루어짐
+ 802D A4                   MUL      AB            ; 2차원 배열을 1차원 배열로 값을 바꿈
+ 802E 29                   ADD      A,R1          ; R1 에는 열의 값 보존
+ 802F 128053               CALL     INDEX         ; 키 코드 값을 지정
+ 8032 12804E               CALL     DISPLAY       ; 키 코드 값의 표시 
+ 8035 7480                 MOV      A,#80H
+ 8037 12806D               CALL     BUZ
+ 803A 128072               CALL     DELAY
+ 803D 7400                 MOV      A,#00H
+ 803F 12806D               CALL     BUZ
+                            
+ 8042 D0D0                 POP      PSW           ; 스택으로 부터 PSW값을 가지고 옴
+ 8044 22                   RET                    ; 상위 루틴으로 복귀
+                
+                
+ 8045           ;*****************************************************************
+ 8045           ;*         서브 루틴 : SUBKEY                                    *
+ 8045           ;*              입력 : ACC                                       *
+ 8045           ;*              출력 : ACC                                       *
+ 8045           ;*              기능 : 데이터 아웃으로 데이터를 내보내고         *
+ 8045           ;*                     데이터 인으로 결과를 확인                 * 
+ 8045           ;*****************************************************************
+ 8045 90FFF0    SUBKEY:    MOV      DPTR,#DATAOUT
+ 8048 F0                   MOVX     @DPTR,A
+ 8049 90FFF1               MOV      DPTR,#DATAIN
+ 804C E0                   MOVX     A,@DPTR
+ 804D 22                   RET
+                
+ 804E           ;*****************************************************************
+ 804E           ;*         서브 루틴 : DISPLAY                                   *
+ 804E           ;*              입력 : ACC                                       *
+ 804E           ;*              출력 : ACC                                       *
+ 804E           ;*              기능 : 키 코드값을 7_SEGMENT 로 표시             *
+ 804E           ;*****************************************************************
+ 804E 90FFC1    DISPLAY:   MOV      DPTR,#DLED
+ 8051 F0                   MOVX     @DPTR,A
+ 8052 22                   RET
+                
+ 8053           ;*****************************************************************
+ 8053           ;*         서브 루틴 : INDEX                                     *
+ 8053           ;*              입력 : ACC                                       *
+ 8053           ;*              출력 : ACC                                       *
+ 8053           ;*              기능 : 키 코드값을 정의                          * 
+ 8053           ;*****************************************************************
+ 8053           ;DEFINE  FUNCTION KEY
+                
+ 0010           RWKEY      EQU     10H ;READ AND WRITE KEY
+ 0011           INCKEY     EQU     11H ;INCRESE KEY(COMMA ,)
+ 0012           ENDKEY     EQU     12H ;END KEY (PERIOD . )
+ 0013           GO         EQU     13H ;GO-KEY
+ 0014           REG        EQU     14H ;REGISTER KEY
+ 0015           DECKEY     EQU     15H ;DECRESE KEY
+ 0016           CODE       EQU     16H ;CODE KEY
+ 0017           ST         EQU     17H ;SINGLE STEP KEY
+ 0018           RST        EQU     18H ;RST KEY
+                
+ 8053 83        INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
+ 8054 22                   RET
+                
+ 8055 17        KEYBASE:   DB ST            ;SW1,ST                  1
+ 8056 16                   DB CODE          ;SW6,CODE                2
+ 8057 15                   DB DECKEY        ;SW11,CD                 3
+ 8058 14                   DB REG           ;SW15,REG                4
+ 8059 13                   DB GO            ;SW19,GO                 5
+ 805A 0C                   DB 0CH           ;SW2,C                   6
+ 805B 0D                   DB 0DH           ;SW7,D                   7
+ 805C 0E                   DB 0EH           ;SW12,E                  8
+ 805D 0F                   DB 0FH           ;SW16,F                  9
+ 805E 11                   DB INCKEY        ;SW20,COMMA (,)         10
+ 805F 08                   DB 08H           ;SW3,8                  11
+ 8060 09                   DB 09H           ;SW8,9                  12
+ 8061 0A                   DB 0AH           ;SW13,A                 13
+ 8062 0B                   DB 0BH           ;SW17,B                 14
+ 8063 12                   DB ENDKEY        ;SW21,PERIOD(.)         15
+ 8064 04                   DB 04H           ;SW4,4                  16
+ 8065 05                   DB 05H           ;SW9,5                  17
+ 8066 06                   DB 06H           ;SW14,6                 18
+ 8067 07                   DB 07H           ;SW18,7                 19
+ 8068 10                   DB RWKEY         ;SW22,R/W               20
+ 8069 00                   DB 00H           ;SW5,0                  21
+ 806A 01                   DB 01H           ;SW10,1                 22
+ 806B 02                   DB 02H           ;SW24,2                 23
+ 806C 03                   DB 03H           ;SW23,3                 24
+ 806D                     ;DB RST           ;SW24  RST KEY          25
+                
+                
+                
+ 806D 90FFEF    BUZ:      MOV   DPTR,#BUZZER 
+ 8070 F0                  MOVX  @DPTR,A
+ 8071 22                  RET
+                
+ 8072 7F80      DELAY:    MOV   R7,#80H
+ 8074 7EFF      DELAY1:   MOV   R6,#0FFH
+ 8076 DEFE      DELAY2:   DJNZ  R6,DELAY2
+ 8078 DFFA                DJNZ  R7,DELAY1
+ 807A 22                  RET
+ 807B                     END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\KEY실험\KEYBUZ.ASM
+
+
+

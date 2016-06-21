@@ -1,0 +1,85 @@
+ 8000           	  ORG    8000H 
+ FFC3           LEDHOU    EQU    0FFC3H ; 시 표시 주소 
+ FFC2           LEDMIN    EQU    0FFC2H ; 분 표시 주소
+ FFC1           LEDSEC    EQU    0FFC1H ; 초 표시 주소
+                
+ 0030           VSEC      EQU    30H    ; 시 저장 변수
+ 0031           VMIN      EQU    31H    ; 분 저장 변수
+ 0032           VHOUR     EQU    32H    ; 초 저장 변수
+                
+                ;*************************************************
+                ;*  시간을 완벽하게 맞추기 위하여 각 패스에 대한 *
+                ;*  딜레이 타임을 조사하고, 균형을 맞춤          *
+                ;*************************************************
+                
+ 8000 753000              MOV    VSEC,#0  ; 시,분,초 변수 초기화
+ 8003 753100              MOV    VMIN,#0
+ 8006 753200              MOV    VHOUR,#0
+ 8009 12803F              CALL   DISPLAY  ; 00:00:00 부터 시계 동작 수행
+                
+ 800C 128011    RUN:      CALL   UPDATE   ; 다른 루틴에 사용하기 위하여 지연 파트와 분리 
+ 800F 80FB                SJMP   RUN            
+                
+ 8011 7830      UPDATE:   MOV    R0,#VSEC    
+ 8013 B65905              CJNE   @R0,#59H,SEC ; 초 단위 비교
+ 8016 7600                MOV    @R0,#0       ; 초 변수 초기화
+ 8018 08                  INC    R0           ; 분 단위 변수 지정
+ 8019 8002                SJMP   MINCHECK     ; 분 비교 루틴으로 분기
+                
+ 801B 801B      SEC:      SJMP   ADDONE       ; 증가 루틴으로 복귀
+                                         
+ 801D B65906    MINCHECK: CJNE   @R0,#59H,MIN ; 분 단위 비교
+ 8020 7600                MOV    @R0 , #0     ; 분 변수 초기화
+ 8022 08                  INC    R0           ; 시 단위 변수 지정
+ 8023 028029              JMP    HOUCHECK     ; 시 비교 루틴으로 분기
+                
+ 8026 028038    MIN:      JMP    ADDONE       ; 증가 루틴으로 분기
+                
+ 8029 B62305    HOUCHECK: CJNE   @R0,#23H,HOUR; 시 단위 비교
+ 802C 7600                MOV    @R0,#0       ; 시 변수 초기화 
+ 802E                    ;INC    R0           ; 필요없는 명령       
+ 802E 028034              JMP    RETPOINT     ; RETPOINT로 분기
+                
+ 8031 028038    HOUR:     JMP    ADDONE       ; 증가 루틴으로 분기
+                
+                
+ 8034 12803F    RETPOINT: CALL   DISPLAY      ; 시간 표시 루틴 호출
+ 8037 22                  RET                 ; 상위 루틴으로 복귀
+                
+ 8038 E6        ADDONE:   MOV    A,@R0        
+ 8039                     ; 해당하는 시,분,초 변수의 값을 읽어옴     
+ 8039 2401                ADD    A,#1         ; 변수의 값을 1 증가 시킴
+ 803B D4                  DA     A            ; 십진 표시
+ 803C F6                  MOV    @R0 , A      ; 해당하는 변수에 저장
+ 803D 80F5                SJMP   RETPOINT     ; RETPOINT로 분기
+                                          
+ 803F           ;****************************************************
+ 803F           ;*        서브 루틴: DISPLAY                        *
+ 803F           ;*             입력: ACC                            * 
+ 803F           ;*             출력: 6개의 7_SEGMENT                *
+ 803F           ;*             기능: 시계 동작 표시                 *
+ 803F           ;****************************************************
+ 803F 90FFC1    DISPLAY:   MOV   DPTR,#LEDSEC    ; 초 표시  
+ 8042 E530                 MOV   A,VSEC            
+ 8044 F0                   MOVX  @DPTR,A           
+                
+ 8045 90FFC2               MOV   DPTR,#LEDMIN    ; 분 표시 
+ 8048 E531                 MOV   A, VMIN          
+ 804A F0                   MOVX  @DPTR,A          
+                
+ 804B 90FFC3               MOV   DPTR,#LEDHOU    ; 시 표시
+ 804E E532                 MOV   A,VHOUR        
+ 8050 F0                   MOVX  @DPTR,A        
+ 8051 22                   RET                 
+                
+ 8052           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\시계4.ASM
+
+
+

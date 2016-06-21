@@ -1,0 +1,48 @@
+ FFFFFFFF           ;타이머 카운터 실험1 ~  타이머0 모드1 을 이용한 LED 제어 실험
+                
+ 8000                       ORG      8000H
+                
+ 8000 758901    MAIN:       MOV      TMOD,#00000001B ;GATE =0,TIMER MODE,RUN MODE 01
+ 8003 75A882                MOV      IE,#10000010B
+ 8006                       ;ENABLE ONLY TIMER 0 
+                
+ 8006 758C00                MOV      TH0,#00H           
+ 8009 758A00                MOV      TL0,#00H             
+ 800C C3                    CLR      C
+ 800D D28C                  SETB     TCON.TR0                
+                
+ 800F 80FE                  JMP      $
+                
+ 8011 C28C      SERVICE:    CLR      TCON.TR0
+ 8013 5003                  JNC      LEDON         
+ 8015 028025                JMP      LEDOFF
+                
+ 8018 D3        LEDON:      SETB     C 
+ 8019 759000                MOV      P1,#00H  ; LED 켜기   
+                            
+ 801C 758C00                MOV      TH0,#00H
+ 801F 758A00                MOV      TL0,#00H
+ 8022 D28C                  SETB     TCON.TR0
+ 8024 32                    RETI 
+                           
+ 8025 C3        LEDOFF:     CLR      C
+ 8026 7590FF                MOV      P1,#0FFH  ; LED 끄기
+                            
+ 8029 758C00                MOV      TH0,#00H
+ 802C 758A00                MOV      TL0,#00H
+ 802F D28C                  SETB     TCON.TR0
+ 8031 32                    RETI 
+                
+ 9F0B                       ORG      9F0BH
+ 9F0B 028011                JMP      SERVICE
+                
+ 9F0E           END                  
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\TIMER_COUNTER실험\TIMER_COUNTER1.ASM
+
+
+

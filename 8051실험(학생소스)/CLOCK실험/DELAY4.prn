@@ -1,0 +1,30 @@
+ FFFFFFFF           ;1초간의  시간 지연 루틴 만들기
+                
+ 0000                     ORG      0000H
+                
+ 0000 7A08                MOV      R2,#08H   ; 1주기
+ 0002 79FF      DELAY3:   MOV      R1,#0FFH  ; 1주기
+ 0004 78E0      DELAY2:   MOV      R0,#0E0H  ; 1주기
+ 0006 D8FE      DELAY1:   DJNZ     R0,DELAY1 ; 2*R0 주기
+ 0008 D9FA                DJNZ     R1,DELAY2 ; (1+2*R0+2)*R1 주기 
+ 000A DAF6                DJNZ     R2,DELAY3 ; {1+(1+2*R0+2)*R1+2}*R2 주기 
+ 000C                                        ; 1+920064=920065주기
+                                             
+ 000C 7C07                MOV      R4,#07H   ; 1주기    
+ 000E 7B6C      ADJUST2:  MOV      R3,#6CH   ; 1주기    
+ 0010 DBFE      ADJUST1:  DJNZ     R3,ADJUST1; 2*R3 주기    
+ 0012 DCFA                DJNZ     R4,ADJUST2; (1+2*R3+2)*R4 주기   
+ 0014                                        ; 1+1533=1534주기
+ 0014                                        ; 921599주기
+ 0014 00                  NOP                ; 921600주기 
+ 0015 80FE                JMP      $
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\DELAY4.ASM
+
+
+

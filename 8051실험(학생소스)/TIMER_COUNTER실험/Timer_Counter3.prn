@@ -1,0 +1,39 @@
+ FFFFFFFF           ;타이머 카운터 실험3 ~ 타이머/카운터1 모드2 를 이용한 실험
+                 
+ 8000                       ORG      8000H
+                
+ 8000 758966    MAIN:       MOV      TMOD,#01100110B ;GATE =0,COUNTER MODE,MODE 10
+ 8003 75A888                MOV      IE,#10001000B ;ENABLE ONLY TIMER 1 
+                
+ 8006 758DFF                MOV      TH1,#0FFH           
+ 8009 758BFF                MOV      TL1,#0FFH             
+                
+ 800C 7590FF                MOV      P1,#0FFH 
+ 800F 74FE                  MOV      A,#11111110B
+ 8011 D28E                  SETB     TCON.TR1                
+                
+ 8013 80FE                  JMP      $
+                
+ 8015 F590      SERVICE:    MOV      P1,A
+ 8017 C3                    CLR      C
+ 8018 33                    RLC      A
+ 8019 4002                  JC       PATH1           ;다켜지 않았으면,PATH1으로 분기
+ 801B 74FF                  MOV      A,#11111111B ;모두 켜져있으면, 다음 동작에서는
+ 801D                                                ; LED 를 모두 끈다.
+ 801D D28C      PATH1:      SETB     TCON.4
+ 801F 32                    RETI 
+                
+ 9F1B                       ORG      9F1BH           ; 타이머1 인터럽트 벡터
+ 9F1B 028015                JMP      SERVICE
+                
+ 9F1E           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\TIMER_COUNTER실험\TIMER_COUNTER3.ASM
+
+
+

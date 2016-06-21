@@ -1,0 +1,24 @@
+ FFFFFFFF           ; AD 실험2 
+ FFD1           DAC       EQU     0FFD1H
+ FFD0           ADC       EQU     0FFD0H
+                
+ 8000                     ORG     8000H
+                       
+ 8000 90FFD0    ADCON:    MOV     DPTR,#ADC
+ 8003 E0                  MOVX    A,@DPTR     ; A/D 변환 읽기
+                                       
+ 8004 90FFD1    DACON:    MOV     DPTR , #DAC
+ 8007 F0                  MOVX    @DPTR, A    ; D/A 변환 쓰기
+ 8008 80F6                JMP     ADCON
+                
+ 800A           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\AD실험\AD2.ASM
+
+
+

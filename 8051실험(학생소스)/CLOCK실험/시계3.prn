@@ -1,0 +1,88 @@
+                ;*************************************************************
+                ;* 시간을 정확히 맞추기 위해 최대한 소스 라인을 줄임.        *
+                ;*************************************************************
+                
+ 0000               	  ORG     0000H 
+ FFC3           LEDHOU    EQU     0FFC3H  ; 시 표시 7_SEGMENT 주소
+ FFC2           LEDMIN    EQU     0FFC2H  ; 분 표시 7_SEGMENT 주소
+ FFC1           LEDSEC    EQU     0FFC1H  ; 초 표시 7_SEGMENT 주소
+                
+ 0030           VSEC      EQU     30H     ; 초(SEC) 변화값 저장 
+ 0031           VMIN      EQU     31H     ; 분(MIN) 변화값 저장
+ 0032           VHOUR     EQU     32H     ; 시(HOU) 변화값 저장 
+                        
+ 0000 753000              MOV     VSEC,#0 ; 시,분,초 변수 초기화
+ 0003 753100              MOV     VMIN,#0
+ 0006 753200              MOV     VHOUR,#0
+ 0009 12003F              CALL    DISPLAY ; 00:00:00 부터 시계 동작 수행
+                
+ 000C 120011    RUN:      CALL    UPDATE  ; 다른 루틴에 사용하기 위하여 지연 파트와 분리 
+ 000F 80FB                SJMP    RUN            
+                
+ 0011 7830      UPDATE:   MOV     R0,#VSEC; 균형을 맞추기 위하여 
+ 0013                                     ; R0를 사용하여 간접 주소 지정을 하고
+ 0013                                     ; 다른 패스간의 차이를 최소화 함.
+                
+ 0013 B65905              CJNE    @R0,#59H,SEC ; 초 단위 비교                2
+ 0016 7600                MOV     @R0,#0       ; 초 저장 변수 초기화         1
+ 0018 08                  INC     R0           ; 분 단위 변수 지정           1   
+ 0019 8002                SJMP    MINCHECK     ; 분 단위 비교 루틴으로 분기  2   
+                
+ 001B 801B      SEC:      SJMP    ADDONE       ; 증가 루틴으로 분기          2 
+                                         
+ 001D B65906    MINCHECK: CJNE    @R0,#59H,MIN ; 분 단위 비교                2
+ 0020 7600                MOV     @R0 , #0     ; 분 단위 저장 변수 초기화    1
+ 0022 08                  INC     R0           ; 시 단위 변수 지정           1
+ 0023 020029              JMP     HOUCHECK     ; 시 단위 비교 루틴으로 분기  2 
+                
+ 0026 020038    MIN:      JMP     ADDONE       ; 증가 루틴으로 분기          2
+                
+ 0029 B62305    HOUCHECK: CJNE    @R0,#23H,HOUR; 시 단위 비교                2
+ 002C 7600                MOV     @R0 , #0     ; 시 단위 저장 변수 초기화    1
+ 002E                     ;INC    R0           ; 필요 업는 명령어         
+ 002E 020034              JMP     RETPOINT     ; RETPOINT로 분기             2
+                
+ 0031 020038    HOUR:     JMP     ADDONE       ; 증가 루틴으로 분기
+                
+                
+ 0034 12003F    RETPOINT: CALL    DISPLAY      ; 시간 표시 루틴 호출
+ 0037 22                  RET                  ; 상위 루틴 복귀 
+                
+ 0038 E6        ADDONE:   MOV     A,@R0      
+ 0039                     ; 해당하는 시,분,초 변수의 값을 읽어옴             1
+ 0039 2401                ADD     A,#1         ; 변수의 값을 1 증가 시킴     1
+ 003B D4                  DA      A            ; 십진표시                    1
+ 003C F6                  MOV     @R0,A        ; 해당하는 변수에 저장        1
+ 003D 80F5                SJMP    RETPOINT     ; RETPOINT로 분기             2  
+                                          
+                
+ 003F           ;****************************************************
+ 003F           ;*        서브 루틴: DISPLAY                        *
+ 003F           ;*             입력: ACC                            * 
+ 003F           ;*             출력: 6개의 7_SEGMENT                *
+ 003F           ;*             기능: 시계 동작 표시                 *
+ 003F           ;****************************************************
+ 003F 90FFC1    DISPLAY:  MOV     DPTR,#LEDSEC ; 초 표시
+ 0042 E530                MOV     A, VSEC           
+ 0044 F0                  MOVX    @DPTR,A           
+                
+ 0045 90FFC2              MOV     DPTR,#LEDMIN ; 분 표시
+ 0048 E531                MOV     A,VMIN            
+ 004A F0                  MOVX    @DPTR,A           
+                
+ 004B 90FFC3              MOV     DPTR,#LEDHOU ; 시 표시 
+ 004E E532                MOV     A,VHOUR           
+ 0050 F0                  MOVX    @DPTR,A           
+ 0051 22                  RET                       
+                          
+ 0052           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\시계3.ASM
+
+
+

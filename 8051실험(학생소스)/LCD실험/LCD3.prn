@@ -1,0 +1,179 @@
+ FFFFFFFF           ; LCD 실험3 ~ LCD에 글자 적기 
+                
+ FFFFFFFF           ;*******************************************************************                      
+ FFE0           LCDWIR      EQU     0FFE0H  ; LCD IR 쓰기
+ FFE1           LCDWDR      EQU     0FFE1H  ; LCD DR 쓰기
+ FFE2           LCDRIR      EQU     0FFE2H  ; LCD IR 읽기
+ FFE3           LCDRDR      EQU     0FFE3H  ; LCD DR 읽기
+                
+ FFFFFFFF           ;DEFINE VARIABLE
+ FFFFFFFF           ;********************************************************************
+ 0020           INST        EQU     20H    ; LCD INSTRUCTION 값 보관
+ 0021           DATA        EQU     21H    ; LCD DATA 값 보관
+ 0022           LROW        EQU     22H    ; LCD 표시 좌표: 행의 값 보관  
+ 0023           LCOL        EQU     23H    ; LCD 표시 좌표: 열의 값 보관
+ 0024           NUMFONT     EQU     24H    ; 메세지 갯수 보관 
+ 0025           FDPL        EQU     25H    ; DPL 값 보관
+ 0026           FDPH        EQU     26H    ; DPH 값 보관 
+                
+ FFFFFFFF           ;DEFINE LCD INSTRUCTION 
+ FFFFFFFF           ;*********************************************************************
+ FFFFFFFF            ; 표시 클리어 
+ 0001           CLEAR       EQU     01H    ;CLEAR 명령
+                
+ FFFFFFFF            ; 커서 훔 
+ 0002           CUR_HOME    EQU     02H    ;CURSOR HOME 위치로 이동
+                
+ FFFFFFFF            ; 커서의 진행 방향을 제어하고,표시의 이동을 제어
+ 0006           ENTRY2      EQU     06H    ; 어드레스를 +1 증가 시키고, 커서나 블링크를 우로 이동
+                
+ FFFFFFFF            ; 표시부 ON/OFF 제어
+ 000E           DCB6        EQU     0EH    ;표시(ON) ,커서(ON) ,블링크(OFF)
+                
+ FFFFFFFF            ; 펑션 세트
+ 0038           FUN5        EQU     38H    ;8비트 2행 5*7  1/16 듀티 
+                
+ FFFFFFFF            ;DD RAM 어드레스 세트
+ 0080           LINE_1      EQU     80H    ;1 000 0000 : LCD 1 번째 줄로 이동
+ 00C0           LINE_2      EQU     0C0H   ;1 010 0000 : LCD 2 번째 줄로 이동 
+                
+                
+ 8000                       ORG     8000H
+                
+                ;LCD 초기화 수행                                
+ 8000 752038    LCD_INIT:   MOV     INST,#FUN5   
+ 8003 12807D                CALL    INSTWR                            
+                                 
+ 8006 75200E                MOV     INST,#DCB6    
+ 8009 12807D                CALL    INSTWR
+                
+ 800C 752001                MOV     INST,#CLEAR     
+ 800F 12807D                CALL    INSTWR
+                
+ 8012 752006                MOV     INST,#ENTRY2
+ 8015 12807D                CALL    INSTWR       
+                            
+                            
+ 8018           ;초기 메세지 표시
+                
+ 8018 752201    LCD_MESG:   MOV     LROW,#01H
+ 801B 752302                MOV     LCOL,#02H
+ 801E 12805F                CALL    CUR_MOV
+                            
+                 
+ 8021 908099                MOV     DPTR,#MESSAGE1
+ 8024 858225                MOV     FDPL,DPL
+ 8027 858326                MOV     FDPH,DPH            
+ 802A 75240E                MOV     NUMFONT,#0EH
+ 802D 12804A                CALL    DISFONT
+                                            
+                 
+ 8030 752202                MOV     LROW,#02H
+ 8033 752302                MOV     LCOL,#02H
+ 8036 12805F                CALL    CUR_MOV
+                 
+ 8039 9080A7                MOV     DPTR,#MESSAGE2
+ 803C 858225                MOV     FDPL,DPL
+ 803F 858326                MOV     FDPH,DPH                                 
+ 8042 75240E                MOV     NUMFONT,#0EH
+ 8045 12804A                CALL    DISFONT
+ 8048 80FE                  JMP     $
+                
+                
+ 804A           ;*************************************************************
+ 804A           ;*           서브 루틴: DISFONT                              *
+ 804A           ;*                입력: 없음                                 *
+ 804A           ;*                출력: LCD 화면                             *
+ 804A           ;*                기능: 글자 폰트를 읽어와 LCD에 표시        *
+ 804A           ;*************************************************************
+ 804A 7D00      DISFONT:    MOV     R5,#00H      
+ 804C 852582    FLOOP:      MOV     DPL,FDPL
+ 804F 852683                MOV     DPH,FDPH 
+ 8052 ED                    MOV     A,R5
+ 8053 93                    MOVC    A,@A+DPTR                 
+ 8054 F521                  MOV     DATA,A
+                
+ 8056 128087                CALL    DATAWR
+ 8059 0D                    INC     R5
+ 805A ED                    MOV     A,R5
+ 805B B524EE                CJNE    A,NUMFONT,FLOOP
+ 805E 22                    RET        
+                
+ 805F           ;**************************************************************
+ 805F           ;*       서브 루틴: 커서의 위치 제어(CUR_MOV)                 *
+ 805F           ;*            입력: 커서의 행과 열 < LROW(행) ,LCOL(열) >     *
+ 805F           ;*            출력: LCD 화면                                  * 
+ 805F           ;*            기능: 커서 위치 조정                            *
+ 805F           ;**************************************************************  
+ 805F E522      CUR_MOV:    MOV     A,LROW
+ 8061 B4010C                CJNE    A,#01H, NEXT
+ 8064 7480                  MOV     A ,#LINE_1
+ 8066 2523                  ADD     A ,LCOL
+ 8068 F520                  MOV     INST,A
+ 806A 12807D                CALL    INSTWR
+ 806D 02807C                JMP     RET_POINT                 
+                
+ 8070 B40209    NEXT:       CJNE    A,#02H, RET_POINT
+ 8073 74C0                  MOV     A ,#LINE_2
+ 8075 2523                  ADD     A ,LCOL
+ 8077 F520                  MOV     INST,A 
+ 8079 12807D                CALL    INSTWR
+ 807C 22        RET_POINT:  RET
+                
+ 807D           ;**************************************************************
+ 807D           ;*         서브 루틴: INSTWR                                  *
+ 807D           ;*              입력: INST                                    *
+ 807D           ;*              출력: LCD 화면                                *
+ 807D           ;*              기능: LCD INSTRUCTION 레지스터 쓰기           *
+ 807D           ;**************************************************************
+ 807D 128091    INSTWR:     CALL     INSTRD
+ 8080 90FFE0                MOV      DPTR,#LCDWIR
+ 8083 E520                  MOV      A,INST
+ 8085 F0                    MOVX     @DPTR,A 
+ 8086 22                    RET
+                
+ 8087           ;**************************************************************
+ 8087           ;*          서브 루틴:DATAW                                   *
+ 8087           ;*               입력:DATA                                    * 
+ 8087           ;*               출력:LCD 화면                                *
+ 8087           ;*               기능:LCD DATA 레지스터 쓰기                  *
+ 8087           ;**************************************************************
+ 8087 128091    DATAWR:     CALL     INSTRD
+ 808A 90FFE1                MOV      DPTR,#LCDWDR
+ 808D E521                  MOV      A,DATA
+ 808F F0                    MOVX     @DPTR,A
+ 8090 22                    RET
+                
+ 8091           ;**************************************************************
+ 8091           ;*          서브 루틴:INSTRD                                  *
+ 8091           ;*               입력:없음                                    *
+ 8091           ;*               출력;BUSY                                    *
+ 8091           ;*               기능:비지 플래그/어드레스 읽기               *
+ 8091           ;**************************************************************
+ 8091 90FFE2    INSTRD:     MOV      DPTR,#LCDRIR
+ 8094 E0                    MOVX     A,@DPTR
+ 8095 20E7F9                JB       ACC.7,INSTRD 
+ 8098 22                    RET               
+                
+                
+ 8099           ;***************************************************************
+ 8099           ;*         DEFINE  MESSAGE                                     *
+ 8099           ;***************************************************************
+ 8099 444F2059  MESSAGE1:   DB 'D','O',' ','Y','O'
+ 809E 55522042              DB 'U','R',' ','B','E'
+ 80A3 53542021              DB 'S','T',' ','!'
+                            
+ 80A7 594F5520  MESSAGE2:   DB 'Y','O','U',' ','C'
+ 80AC 414E2044              DB 'A','N',' ','D','O'
+ 80B1 20495421              DB ' ','I','T','!'             
+ 80B5           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: \\MAC\HOME\DESKTOP\ASSEMBLE\8051실험(학생소스)\LCD실험\LCD3.ASM
+
+
+

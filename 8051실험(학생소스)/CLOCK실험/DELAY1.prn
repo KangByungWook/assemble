@@ -1,0 +1,18 @@
+                ; 단일루프 DELAY
+                
+ 0000                        ORG     0000H
+                
+ 0000 78FF                   MOV     R0,#0FFH   ; 1  주기
+ 0002 D8FE      DELAY:       DJNZ    R0,DELAY   ; 2*R0 주기
+ 0004 80FE                   JMP     $          ; 1+2*R0 주기 
+                                     
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\DELAY1.ASM
+
+
+

@@ -1,0 +1,34 @@
+ FFFFFFFF           ; A/D 실험 1 ~
+ FFFFFFFF           ;     Function generator 를 이용 하여 analog 신호를 입력하자
+ FFFFFFFF           ;     A/D CONVERTER 출력을 맨 오른쪽 2개의 7_SEGMENT로 표시
+                
+ FFC1           SEGR      EQU     0FFC1H
+ FFD0           ADC       EQU     0FFD0H
+                
+ 8000                     ORG     8000H 
+                
+ 8000 90FFD0    ADCON:    MOV     DPTR,#ADC
+ 8003 E0                  MOVX    A,@DPTR     ;아날로그 신호 읽기
+                
+ 8004 90FFC1              MOV     DPTR,#SEGR
+ 8007 F0                  MOVX    @DPTR,A     ;변환된 값 표시
+                                        
+ 8008 12800D              CALL    DELAY
+ 800B 80F3                JMP     ADCON                   
+                
+ 800D 7FFF      DELAY:    MOV     R7,#0FFH
+ 800F 7EFF      DELAY1:   MOV     R6,#0FFH
+ 8011 DEFE      DELAY2:   DJNZ    R6,DELAY2
+ 8013 DFFA                DJNZ    R7,DELAY1
+ 8015 22                  RET                 
+ 8016           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\AD실험\AD1.ASM
+
+
+

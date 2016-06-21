@@ -1,0 +1,86 @@
+ FFFFFFFF           ; LCD 실험1 ~ LCD 초기화 
+                
+ FFFFFFFF           ; 실험 보드에 있는 LCD 주소                      
+ FFE0           LCDWIR      EQU     0FFE0H  ; LCD IR 쓰기
+ FFE1           LCDWDR      EQU     0FFE1H  ; LCD DR 쓰기
+ FFE2           LCDRIR      EQU     0FFE2H  ; LCD IR 읽기
+ FFE3           LCDRDR      EQU     0FFE3H  ; LCD DR 읽기
+                
+ FFFFFFFF           ;DEFINE VARIABLE
+ FFFFFFFF           ;********************************************************************
+ 0020           INST        EQU     20H    ; LCD INSTRUCTION 값 보관
+ 0021           DATA        EQU     21H    ; LCD DATA 값 보관
+ 0022           BUSY        EQU     22H    ; LCD BUSY FLAG/ADDRESS 읽은 값 보관 
+                
+ FFFFFFFF           ;DEFINE LCD INSTRUCTION 
+ FFFFFFFF           ;*********************************************************************
+ FFFFFFFF            ; 표시 클리어 
+ 0001           CLEAR       EQU     01H    ;CLEAR 명령
+ FFFFFFFF            ; 커서의 진행 방향을 제어하고,표시의 이동을 제어
+ 0006           ENTRY2      EQU     06H    ; 어드레스를 +1 증가 시키고, 커서나 블링크를 우로 이동
+ FFFFFFFF            ; 표시부 ON/OFF 제어
+ 000E           DCB6        EQU     0EH    ; 표시(ON) ,커서(ON) ,블링크(OFF)
+ FFFFFFFF            ; 펑션 세트
+ 0038           FUN5        EQU     38H    ; 8비트 2행 5*7  1/16 듀티 
+                
+ 8000                       ORG     8000H
+                                            
+ 8000           LCD_INIT:   
+ 8000 752038                MOV     INST,#FUN5   
+ 8003 12801A                CALL    INSTWR
+                                            
+ 8006 75200E                MOV     INST,#DCB6    
+ 8009 12801A                CALL    INSTWR
+                            
+ 800C 752001                MOV     INST,#CLEAR     
+ 800F 12801A                CALL    INSTWR                                     
+                            
+ 8012 752006                MOV     INST,#ENTRY2
+ 8015 12801A                CALL    INSTWR       
+ 8018 80FE                  JMP     $
+                
+ 801A           ;**************************************************************
+ 801A           ;*         서브 루틴: INSTWR                                  *
+ 801A           ;*              입력: INST                                    *
+ 801A           ;*              출력: LCD 화면                                *
+ 801A           ;*              기능: LCD INSTRUCTION 레지스터 쓰기           *
+ 801A           ;**************************************************************
+ 801A 12802E    INSTWR:     CALL     INSTRD
+ 801D 90FFE0                MOV      DPTR,#LCDWIR
+ 8020 E520                  MOV      A,INST
+ 8022 F0                    MOVX     @DPTR,A 
+ 8023 22                    RET
+                
+ 8024           ;**************************************************************
+ 8024           ;*          서브 루틴:DATAW                                   *
+ 8024           ;*               입력:DATA                                    * 
+ 8024           ;*               출력:LCD 화면                                *
+ 8024           ;*               기능:LCD DATA 레지스터 쓰기                  *
+ 8024           ;**************************************************************
+ 8024 12802E    DATAWR:     CALL     INSTRD
+ 8027 90FFE1                MOV      DPTR,#LCDWDR
+ 802A E521                  MOV      A,DATA
+ 802C F0                    MOVX     @DPTR,A
+ 802D 22                    RET
+                
+ 802E           ;**************************************************************
+ 802E           ;*          서브 루틴:INSTRD                                  *
+ 802E           ;*               입력:없음                                    *
+ 802E           ;*               출력;BUSY                                    *
+ 802E           ;*               기능:비지 플래그/어드레스 읽기               *
+ 802E           ;**************************************************************
+ 802E 90FFE2    INSTRD:     MOV      DPTR,#LCDRIR
+ 8031 E0                    MOVX     A,@DPTR
+ 8032 20E7F9                JB       ACC.7,INSTRD 
+ 8035 22                    RET                
+                
+ 8036           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\LCD실험\LCD1.ASM
+
+
+

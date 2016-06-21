@@ -1,0 +1,106 @@
+ 8000                     ORG     8000H  
+                	
+                ;PROGRAMED BY  KIM HYUNG SOO
+ FFC3           LEDHOU    EQU     0FFC3H    ; 시(Hour) 표시 주소
+ FFC2           LEDMIN    EQU     0FFC2H    ; 분(Min)  표시 주소
+ FFC1           LEDSEC    EQU     0FFC1H    ; 초(Sec)  표시 주소
+ 00D9           ADJUST    EQU     000D9H    ; 시계 속도를 맞추기 위한 상수
+                                
+ 8000 12805A              LCALL   ALLCLEAR  ; 초기화
+                                
+ 8003 7A08      CLOCK:    MOV     R2,#0008H 
+ 8005 79FF      DELAY3:   MOV     R1,#00FFH
+ 8007 78E0      DELAY2:   MOV     R0,#00E0H
+ 8009 D8FE      DELAY1:   DJNZ    R0,DELAY1
+ 800B D9FA                DJNZ    R1,DELAY2
+ 800D DAF6                DJNZ    R2,DELAY3
+                
+ 800F           ;******************************************************
+ 800F           ;*        920064 주기가 걸림                          *
+ 800F           ;*        1초는 921600 주기가 필요 하다.              *
+ 800F           ;*        따라서  1536 주기가 더 필요하다.            *
+ 800F           ;******************************************************
+                               
+ 800F ACD9                MOV     R4,ADJUST     
+ 8011 7B02      ADJUST2:  MOV     R3,#0002H    
+ 8013 DBFE      ADJUST1:  DJNZ    R3,ADJUST1   
+ 8015 DCFA                DJNZ    R4,ADJUST2   
+                
+ 8017           ;******************************************************
+ 8017           ;*    ADJUST 루틴에서 걸린 주기                       * 
+ 8017           ;*    2*VAR*2 + VAR*3 = 7*VAR CYCLE                   *
+ 8017           ;*    VAR=215 , 따라서 1505 주기가 된다.              *
+ 8017           ;*    나머지 31 주기는 1초를 표시하는 루틴에서        *
+ 8017           ;******************************************************
+ 8017 BD590C    CONDITON: CJNE    R5,#59H,SEC     ; 초 단위 비교 
+                                                       
+ 801A BE5914              CJNE    R6,#59H,MIN     ; 분 단위 비교
+                                                       
+ 801D BF2324              CJNE    R7,#23H,HOUR    ; 시 단위 비교
+                                                       
+ 8020 12805A              LCALL   ALLCLEAR        ; 23:59:59 -> 00:00:00
+ 8023 028003              LJMP    CLOCK           ; CLOCK으로 분기
+                                          
+ 8026 ED        SEC:      MOV     A,R5          
+ 8027 2401                ADD     A,#1H           ; 초 단위 증가
+ 8029 D4                  DA      A               ; 십진수 표현
+ 802A FD                  MOV     R5,A          
+ 802B 12807A              LCALL   DISSEC          ; 초 표시 루틴 호출
+ 802E 028003              LJMP    CLOCK           ; CLOCK으로 분기
+                                 
+                               
+ 8031 EE        MIN:      MOV     A,R6               
+ 8032 2401                ADD     A,#1H           ; 분 단위 증가
+ 8034 D4                  DA      A               ; 십진수 표현    
+ 8035 FE                  MOV     R6,A
+ 8036 12806D              LCALL   CLRSEC          
+ 8039 128075              LCALL   DISMIN          ; 분 표시 루틴 호출
+ 803C 7400                MOV     A,#00H       
+ 803E 12807A              LCALL   DISSEC          ; 초 00 표시 
+ 8041 028003              LJMP    CLOCK           ; CLOCK으로 분기
+                                 
+                                
+ 8044 EF        HOUR:     MOV     A,R7
+ 8045 2401                ADD     A,#1H           ; 시 단위 증가 
+ 8047 D4                  DA      A               ; 십진수 표현
+ 8048 FF                  MOV     R7,A
+ 8049 12806B              LCALL   CLRMIN
+ 804C 128070              LCALL   DISHOU          ; 시 표시 루틴 호출       
+ 804F 7400                MOV     A,#00H
+ 8051 128075              LCALL   DISMIN 
+ 8054 12807A              LCALL   DISSEC
+ 8057 028003              LJMP    CLOCK
+                      
+ 805A 128069    ALLCLEAR: LCALL   CLRHOU          ; 표시 초기화 루틴
+ 805D 7400                MOV     A,#00H         
+ 805F 128070              LCALL   DISHOU
+ 8062 128075              LCALL   DISMIN
+ 8065 12807A              LCALL   DISSEC
+ 8068 22                  RET
+                                                
+ 8069 7F00      CLRHOU:   MOV     R7,#0H          ; 변수 초기화 루틴
+ 806B 7E00      CLRMIN:   MOV     R6,#0H
+ 806D 7D00      CLRSEC:   MOV     R5,#0H
+ 806F 22                  RET
+                                                
+ 8070 90FFC3    DISHOU:   MOV     DPTR,#LEDHOU    ; 시 표시 루틴
+ 8073 F0                  MOVX    @DPTR,A        
+ 8074 22                  RET                    
+                                                 
+ 8075 90FFC2    DISMIN:   MOV     DPTR,#LEDMIN    ; 분 표시 루틴 
+ 8078 F0                  MOVX    @DPTR,A
+ 8079 22                  RET
+                
+ 807A 90FFC1    DISSEC:   MOV     DPTR,#LEDSEC
+ 807D F0                  MOVX    @DPTR,A
+ 807E 22                  RET          
+ 807F           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\CLOCK실험\시계1.ASM
+
+
+

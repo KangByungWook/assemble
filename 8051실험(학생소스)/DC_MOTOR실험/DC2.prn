@@ -1,0 +1,75 @@
+ FFFFFFFF           ; DC MOTOR 실험2 ~  DC 모터 등가속-> 등감속 실험
+ 0020           TEMP      EQU      20H 
+ 0021           MODE      EQU      21H
+                 
+ 8000                     ORG      8000H
+                
+ 8000 752001              MOV      TEMP,#01H
+ 8003 752101              MOV      MODE,#01H
+                
+ 8006 7406      M_ON:     MOV      A,#00000110B
+ 8008 128047              CALL     MOTOR         ; 모터 정회전
+                                
+ 800B 128035    START:    CALL     DINC          ; 정회전 시간
+                
+ 800E E521                MOV      A,MODE        
+ 8010 30E00B              JNB      A.0,DECR               
+                 
+ 8013 D208      INCR:     SETB     MODE.0        ; 정회전 시간 증가 모드 
+ 8015                                            ; MODE.0 = 1
+                
+ 8015 E520                MOV      A,TEMP
+ 8017 2401                ADD      A,#01H 
+ 8019 F520                MOV      TEMP,A        ; 정회전 시간을 증가 시킴                              
+                
+ 801B B4800D              CJNE     A,#80H,STOP   ; 모터 정지 루틴으로 분기   
+                
+ 801E C208      DECR:     CLR      MODE.0        ; 정회전 시간 감소 모드 
+ 8020                                            ; MODE.0 = 0
+                
+ 8020 E520                MOV      A,TEMP
+ 8022 9401                SUBB     A,#01H
+ 8024 F520                MOV      TEMP,A        ; 정회전 시간을 감소 시킴     
+                
+ 8026 B40002              CJNE     A,#00H,STOP   ; 모터 정지 루틴으로 분기 
+                
+ 8029 80E8                JMP      INCR
+                
+ 802B 7400      STOP:     MOV      A,#00000000B  ; 모터 회전 정지
+ 802D 128047              CALL     MOTOR
+ 8030 12803E              CALL     DSTOP         ; 회전 정지 시간 
+ 8033 80D1                JMP      M_ON               
+                 
+ 8035 AF20      DINC:     MOV      R7,TEMP
+ 8037 7EFF      DINC1:    MOV      R6,#0FFH
+ 8039 DEFE      DINC2:    DJNZ     R6,DINC2
+ 803B DFFA                DJNZ     R7,DINC1
+ 803D 22                  RET
+                
+ 803E 7CFF      DSTOP:    MOV      R4,#0FFH 
+ 8040 7DFF      DSTOP1:   MOV      R5,#0FFH
+ 8042 DDFE      DSTOP2:   DJNZ     R5,DSTOP2
+ 8044 DCFA                DJNZ     R4,DSTOP1
+ 8046 22                  RET
+                
+ 8047           ;****************************************************
+ 8047           ;*        서브 루틴 : MOTOR                         *
+ 8047           ;*             입력 ; A                             *
+ 8047           ;*             출력 : 없음                          *
+ 8047           ;*             기능 : 입력에 따라 모터의 정,역회전  * 
+ 8047           ;*                    정지 동작 수행                *
+ 8047           ;****************************************************
+ 8047 90FFEF    MOTOR:    MOV      DPTR,#0FFEFH 
+ 804A F0                  MOVX     @DPTR,A
+ 804B 22                  RET
+                
+ 804C           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\DC_MOTOR실험\DC2.ASM
+
+
+

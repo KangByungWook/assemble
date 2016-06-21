@@ -1,0 +1,23 @@
+ FFFFFFFF           ;      LED 실험1 ~ ON/OFF
+ 8000                     ORG   8000H
+ 8000 759000    LOOP:     MOV   P1,#00H     ; LED 켜기   
+ 8003 12800E              CALL  DELAY       ; 일정 시간 지연 
+ 8006 7590FF              MOV   P1,#0FFH    ; LED 끄기
+ 8009 12800E              CALL  DELAY       ; 일정 시간 지연
+ 800C 80F2                JMP   LOOP        ; 반복을 위한 분기
+                
+ 800E 7FFF      DELAY:    MOV   R7,#0FFH  ; 시간 지연 루틴 
+ 8010 7EFF      DELAY1:   MOV   R6,#0FFH
+ 8012 DEFE      DELAY2:   DJNZ  R6,DELAY2
+ 8014 DFFA                DJNZ  R7,DELAY1  
+ 8016 22                  RET
+ 8017           END
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\LED실험\LED1.ASM
+
+
+

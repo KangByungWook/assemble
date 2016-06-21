@@ -1,0 +1,40 @@
+ FFFFFFFF           ; 외부 인터럽트 실험3 ~ Single Step Operation
+                
+ 8000                     ORG   8000H
+                
+ 8000 758140    MAIN:     MOV   SP,#40H
+ 8003 D2B8                SETB  PX0  ; 외부 인터럽트 우선 순위 SET
+ 8005 D2A8                SETB  EX0  ; 외부 인터럽트0 인에이블 
+ 8007 D288                SETB  IT0  ; Edge Trigger Mode
+ 8009 D2AF                SETB  EA   ; 전체 인터럽트 인에이블 
+ 800B 20B2FD              JB    P3.2,$ ; Sigle Step Operation 대기
+                
+ 800E 74FE      PORT1:    MOV   A,#11111110B
+ 8010 F590      LOOP1:    MOV   P1,A
+ 8012 C3                  CLR   C
+ 8013 33                  RLC   A
+ 8014 B400F9              CJNE  A,#00000000B,LOOP1
+ 8017 F590      LOOP2:    MOV   P1,A
+ 8019 D3                  SETB  C
+ 801A 13                  RRC   A
+ 801B B4FFF9              CJNE  A,#11111111B,LOOP2
+ 801E F590                MOV   P1,A
+ 8020 80EC                JMP   PORT1
+                
+ 8022 30B2FD    SERVICE:  JNB   P3.2,$
+ 8025 20B2FD              JB    P3.2,$
+ 8028 32                  RETI
+                
+ 9F03                     ORG      9F03H
+ 9F03 028022              JMP      SERVICE 
+                
+ 9F06           END    
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\INTERRUPT실험\INT3.ASM
+
+
+

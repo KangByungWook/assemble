@@ -1,0 +1,27 @@
+ FFFFFFFF           ;         산술 연산 시험 
+                
+ 8000                     ORG   8000H
+                
+ 8000 7840                MOV   R0, #40H
+ 8002 7600                MOV   @R0,#00H
+ 8004 16                  DEC   @R0
+ 8005 0540                INC   40H
+ 8007           ;
+                
+ 8007 9012FF              MOV   DPTR,#12FFH
+ 800A A3                  INC   DPTR
+ 800B           ;
+ 800B 1582                DEC   DPL
+ 800D 1583                DEC   DPH
+                
+                
+                        
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: \\MAC\HOME\DOWNLOADS\산술논리연산\ARITHMETIC_1.ASM
+
+
+

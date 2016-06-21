@@ -1,0 +1,32 @@
+ FFFFFFFF           ;6 7_SEGMENT 실험1 ~  80 51 00 표시 하기
+                
+ FFC3           SEGL            EQU    0FFC3H
+ FFC2           SEGM            EQU    0FFC2H
+ FFC1           SEGR            EQU    0FFC1H
+                
+ 8000                           ORG    8000H
+                
+ 8000 90FFC3                    MOV    DPTR,#SEGL  ; 왼쪽 2개 선택
+ 8003 7480                      MOV    A,#80H
+ 8005 F0                        MOVX   @DPTR,A     ; 80 표시
+                
+ 8006 90FFC2                    MOV    DPTR,#SEGM  ; 중간 2개 선택
+ 8009 7451                      MOV    A,#51H
+ 800B F0                        MOVX   @DPTR,A     ; 51 표시
+                
+ 800C 90FFC1                    MOV    DPTR,#SEGR  ; 오른쪽 2개 선택
+ 800F 7400                      MOV    A,#00H
+ 8011 F0                        MOVX   @DPTR,A     ; 00 표시
+                
+ 8012 80FE                      JMP    $
+ 8014           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\7_SEGMENT실험\SLED1.ASM
+
+
+

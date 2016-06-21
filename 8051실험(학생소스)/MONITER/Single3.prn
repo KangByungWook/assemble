@@ -1,0 +1,963 @@
+ FFFFFFFF           ;PROGRAMMED BY KIM HYUNG SOO
+ FFFFFFFF           ;20 번지에서 부터 17바이트를 사용자 지정
+ FFFFFFFF           ;메인 프로그램은 뱅크3 레지스터를 사용
+                
+ FFFFFFFF           ;*****************************************************
+ FFFFFFFF           ;변수 정의
+ 0020           ADRES0    EQU     20H     ; 하위 주소 값을 보관
+ 0021           ADRES1    EQU     21H     ; 상위 주소 값을 보관
+ 0022           ADRESB    EQU     22H     ; 주소 버퍼
+                
+ 0023           DATA      EQU     23H     ; 표시된 주소에 있는 데이터 보관
+ 0024           DATAB     EQU     24H     ; 데이터 버퍼     
+                
+ 0025           CMD       EQU     25H     ; 명령어 보관  
+ 0026           MSP       EQU     26H     ; 모니터 프로그램의 SP 보관
+                
+ 0027           TMP0      EQU     27H     ; 임시 변수 저장
+                
+ 0028           UPCH      EQU     28H     ; 사용자 PC 상위 주소
+ 0029           UPCL      EQU     29H     ; 사용자 PC 하위 주소
+ 002A           UDPH      EQU     2AH     ; 사용자 DPH 의 주소
+ 002B           UDPL      EQU     2BH     ; 사용자 DPL 의 주소
+ 002C           UPSW      EQU     2CH     ; 사용자 PSW 의 주소
+ 002D           UACC      EQU     2DH     ; 사용자 ACC 의 주소
+ 002E           USP       EQU     2EH     ; 사용자 SP 의 주소
+                
+ FFFFFFFF           ;****************************************************
+ FFFFFFFF           ;상수 정의
+ FFF0           DATAOUT   EQU     0FFF0H  ; 키패드로 데이터를 내보내는 주소
+ FFF1           DATAIN    EQU     0FFF1H  ; 키패드로 부터 데이터를 읽는 주소
+                
+ FFC1           DLED      EQU     0FFC1H  ; 데이터값을 표시하는 7_SEGMENT 주소
+ FFC2           ALED0     EQU     0FFC2H  ; 하위 주소값을 표시하는 7_SEGMENT 주소
+ FFC3           ALED1     EQU     0FFC3H  ; 상위 주소값을 표시하는 7_SEGMENT 주소  
+                
+                
+ 0089           CLKHIGH   EQU     089H    ; 시계 프로그램의 상위 시작 주소
+ 0000           CLKLOW    EQU     000H    ; 시계 프로그램의 하위 시작 주소
+                
+ 0030           STARTSP   EQU     30H     ; SP의 시작 위치
+ 0070           USPSTART  EQU     70H     ; 사용자 SP의 시작 위치
+                
+ FFFFFFFF           ;*****************************************************
+ FFFFFFFF           ;함수 키 정의
+                
+ 0010           RWKEY      EQU    10H     ; [R/W] 키 ~ 외부 메모리 내용의 변경 및 확인
+ 0011           INCKEY     EQU    11H     ; [ ,]  키 ~ 주소 증가
+ 0012           ENDKEY     EQU    12H     ; [ .]  키 ~ 함수키 명령의 종료
+ 0013           GO         EQU    13H     ; [GO]  키 ~ 프로그램의 실행 명령
+ 0014           REG        EQU    14H     ; [REG] 키 ~ 내부 레지스터,메모리 변경 및 확인
+ 0015           DECKEY     EQU    15H     ; [INC] 키 ~ 주소 감소
+ 0016           CODE       EQU    16H     ; [CD]  키 ~ 프로그램 메모리 내용 확인
+ 0017           ST         EQU    17H     ; [ST]  키 ~ 싱글스텝 실행 명령
+ 0018           RST        EQU    18H     ; [RST] 키 ~ 리셋 명령
+                
+ FFFFFFFF           ;*****************************************************
+ FFFFFFFF           ;에러 코드 정의
+ 0010           ERRCHK     EQU    10H     ; 에러 체크를 위한 키 값 10H
+ FFFFFFFF                                     ; 함수 키 일 경우 10H 보다 크다
+ 00F0           ERRCODE0   EQU    0F0H    ; 에러 코드 "F0" ~ 메인 루틴에서의 에러 표시
+ 00F1           ERRCODE1   EQU    0F1H    ; 에러 코드 "F1" ~ R/W 에서의 에러 표시
+ 00F2           ERRCODE2   EQU    0F2H    ; 에러 코드 "F2" ~ CD 에서의 에러 표시
+ 00F3           ERRCODE3   EQU    0F3H    ; 에러 코드 "F3" ~ REG 에서의 에러 표시
+ 00F4           ERRCODE4   EQU    0F4H    ; 에러 코드 "F4" ~ ST 에서의 에러 표시
+ 00F5           ERRCODE5   EQU    0F5H    ; 에러 코드 "F5" ~ GO 에서의 에러 표시
+ FFFFFFFF           ;******************************************************
+                
+ 8000                      ORG    8000H
+ 8000 758911               MOV    TMOD,#00010001B  ; GATE =0 , 타이머0 모드1 설정
+ 8003 75A882               MOV    IE,#10000010B    ; 인터럽트 인에이블 타이머0         
+                
+ 8006           ;***************************************************
+ 8006           ;             메인 루틴                            *
+ 8006           ;***************************************************
+                
+ 8006 758130    START:     MOV    SP,#STARTSP   ; SP를 30H 로 이동
+ 8009 752C00               MOV    UPSW,#0       ; 사용자 PSW "00" 로 초기화
+ 800C 752889               MOV    UPCH,#CLKHIGH ; 사용자 PC 상위 주소 "89H" 로 초기화
+ 800F 752900               MOV    UPCL,#CLKLOW  ; 사용자 PC 하위 주소 "00H" 로 초기화
+ 8012 752E70               MOV    USP,#USPSTART ; 사용자 SP "70H" 로 초기화
+                
+ 8015 752A00               MOV    UDPH,#00H     ; 사용자 DPH "00" 로 초기화
+ 8018 752B00               MOV    UDPL,#00H     ; 사용자 DPL "00" 로 초기화
+ 801B 752D00               MOV    UACC,#00H     ; 사용자 ACC "00" 로 초기화
+                
+ 801E 12830B    D8051:     CALL   DIS8051       ; 초기화면  8051 표시
+                
+ 8021 12835B    MAIN:      CALL   SCANN         ; 키 입력 조사
+                           
+ 8024 B41005               CJNE   A,#RWKEY,INSCHK1 ; [R/W] 키 이면
+ 8027 1280A7               CALL   RWINIT           ; 외부 메모리 READ , WRITE
+ 802A 80F2                 JMP    D8051            ; D8051로 분기. 다음 명령 대기
+                
+ 802C B41705    INSCHK1:   CJNE   A,#ST,INSCHK2    ; [ST] 키 이면
+ 802F 12825D               CALL   SINGLE           ; 싱글 스텝 기능 수행
+ 8032 80EA                 JMP    D8051            ; D8051로 분기. 다음 명령 대기
+                
+ 8034 B41405    INSCHK2:   CJNE   A,#REG,INSCHK3   ; [REG] 키 이면
+ 8037 12818D               CALL   INTRAM           ; 내부 메모리 READ,WRITE
+ 803A 80E2                 JMP    D8051            ; D8051로 분기. 다음 명령 대기
+                
+ 803C B41605    INSCHK3:   CJNE   A,#CODE,INSCHK4  ; [CD] 키 이면
+ 803F 128211               CALL   PROGMEM          ; 프로그램 메모리 READ
+ 8042 80DA                 JMP    D8051            ; D8051로 분기. 다음 명령 대기
+                
+ 8044 B41802    INSCHK4:   CJNE   A,#RST,INSCHK5   ; [RST] 키 이면
+ 8047 80BD                 SJMP   START            ; 프로그램 리셋. 변수 초기화
+                 
+ 8049 B41305    INSCHK5:   CJNE   A,#GO,ERR0       ; [GO] 키 이면
+ 804C 1282C6               CALL   BRK              ; 프로그램 실행 명령 수행
+ 804F 80CD                 JMP    D8051            ; D8051로 분기. 다음 명령 대기
+                
+ 8051 74F0      ERR0:      MOV    A,#ERRCODE0      ; 키 입력이 잘못되면
+ 8053                                              ; 스택을 다시 초기화하고,
+ 8053                                              ; 프로그램을 다시 시작
+ 8053 12832D               CALL   ERR              ; 메인 루틴에서의 에러 코드 표시
+                
+                
+ 8056           ;*******************************************************
+ 8056           ;    타이머 인터럽트 서비스 루틴                       *
+ 8056           ;     1. 싱글 스텝(ST)              : CMD.0  = 1       *
+ 8056           ;     2. 프로그램 실행 명령(GO)     : CMD.0  = 0       *
+ 8056           ;     3. 프로그램 실행 명령(GO)     : RST 키 체크      *
+ 8056           ;*******************************************************
+ 8056 C28C      SERVICE:   CLR    TR0               ; 타이머0 동작 정지
+ 8058                      ; 다음 실행 명령의 PC값을 저장
+ 8058 D028                 POP    UPCH              
+ 805A D029                 POP    UPCL        
+                           
+ 805C 302814               JNB    CMD.0   BREAKPRO   
+ 805F                      ; 싱글 스텝일 경우      CMD.0 =  " 1 "            
+ 805F                      ; 프로그램 실행일 경우  CMD.0 =  " 0 "
+                
+ 805F                      ;싱글 스텝 수행을 위한 레지스터값 보존
+ 805F 85E02D    RETPRO:    MOV    UACC,ACC  
+ 8062 85832A               MOV    UDPH,DPH
+ 8065 85822B               MOV    UDPL,DPL
+ 8068 85D02C               MOV    UPSW,PSW
+ 806B 85812E               MOV    USP,SP
+ 806E 852681               MOV    SP,MSP ; 모니터 프로그램 실행시의 SP 값으로
+ 8071 8033                 SJMP   BACK   ; 싱글 스텝 종료  
+                
+ 8073 C0E0      BREAKPRO:  PUSH   ACC
+ 8075 C083                 PUSH   DPH
+ 8077 C082                 PUSH   DPL
+                
+ 8079 74FE      CHKSTOP:   MOV    A,#11111110B        ;마지막 열을 체크
+ 807B 90FFF0               MOV    DPTR,#DATAOUT
+ 807E F0                   MOVX   @DPTR,A
+                           
+ 807F 90FFF1               MOV    DPTR,#DATAIN 
+ 8082 E0                   MOVX   A,@DPTR
+                           
+ 8083 B4EF09               CJNE   A,#11101111B,CHKBRK
+ 8086                      ;[RST]키 이면 프로그램 초기화
+                
+ 8086 908006               MOV    DPTR,#START    
+ 8089 C082                 PUSH   DPL                 
+ 808B C083                 PUSH   DPH                          
+ 808D 8017                 SJMP   BACK       ; START로 분기
+                
+ 808F 1282BB    CHKBRK:    CALL   DBLEQU     ; CHECK CURRENT ADDRESS           
+ 8092 60CB                 JZ     RETPRO     ; IF ACC EQUAL ZERO THEN RETURN TO MAIN
+                
+ 8094 D082                 POP    DPL        ; 레지스터 값의 복원
+ 8096 D083                 POP    DPH
+ 8098 D0E0                 POP    ACC
+                
+ 809A C029                 PUSH   UPCL                 
+ 809C C028                 PUSH   UPCH                   
+                
+ 809E 758CFF               MOV    TH0,#0FFH  ; 타이머0 다시 세팅
+ 80A1 758AFF               MOV    TL0,#0FFH   
+ 80A4 D28C                 SETB   TR0        ; 타이머 동작 실행 
+                
+ 80A6 32        BACK:      RETI              ; 인터럽터 서비스 루틴 종료
+                
+ 80A7           ;****************************************************************
+ 80A7           ;*         서브 루틴: RANDW    (READ AND WRITE)                 *
+ 80A7           ;*              입력: 키 패드                                   *
+ 80A7           ;*              출력: ADRES0,ADRES1,ADRESB,ALED0,ALED1          *
+ 80A7           ;*    보조 서브 루틴: SCANN,DRANDW,ADIS,AROT                    *
+ 80A7           ;*              기능: 입력 주소 표시                            *
+ 80A7           ;****************************************************************
+ 80A7 128319    RWINIT:    CALL   CLEAR             ; 표시 창을 끄고 버퍼의 초기화
+ 80AA 752189               MOV    ADRES1,#CLKHIGH   ; 디폴트 상위 시작 주소
+ 80AD 752000               MOV    ADRES0,#CLKLOW    ; 디폴트 하위 시작 주소
+ 80B0 128179               CALL   ADIS              ; 시작 주소 표시
+                
+ 80B3 12835B    RANDW:     CALL   SCANN             ; 키 입력 체크
+                           
+ 80B6 B41103               CJNE   A,#INCKEY,WRTCHK1 ; [,] 키 입력이면
+ 80B9 1280DA               CALL   DRANDW            ; 주소 증가, 데이터 표시
+                
+                
+ 80BC B41503    WRTCHK1:   CJNE   A,#DECKEY,WRTCHK2 ; [INC] 키 입력이면
+ 80BF 1280DA               CALL   DRANDW            ; 주소 감소, 데이터 표시
+                                                    
+ 80C2 B41201    WRTCHK2:   CJNE   A,#ENDKEY,WRTCHK3 ; [.]키 입력이면 RANDW 루틴은 종료
+ 80C5 22                   RET                      ; 메인 루틴으로 복귀
+                
+ 80C6 B41000    WRTCHK3:   CJNE   A,#ERRCHK,WRTCHK4 ; [NUMBER]키 이면, 캐리 비트는 "1"
+ 80C9                                               ; [명령] 키 이면, 캐리 비트는 "0"
+                
+ 80C9 500A      WRTCHK4:   JNC    ERR1
+ 80CB F522                 MOV    ADRESB,A          ; 계속해서 주소 표시
+ 80CD 128149               CALL   AROT              ; 주소 표시 이동 루틴 호출
+ 80D0 128179               CALL   ADIS              ; 주소 표시 루틴 호출
+ 80D3 80DE                 JMP    RANDW             ; 다음 주소가 입력될때 까지 대기   
+                
+ 80D5 74F1      ERR1:      MOV    A,#ERRCODE1       ; [R/W] 에러 코드 "F1" 누산기로
+ 80D7 12832D               CALL   ERR               ; 에러를 표시한 후 RANDW 루틴은 종료
+                
+                
+ 80DA           ;***************************************************************
+ 80DA           ;*         서브 루틴: DRANDW  (DATA READ AND WRITE RUTINE)     *
+ 80DA           ;*              입력: DATA,DATAB                               *
+ 80DA           ;*              출력: DLED,DATA,ALED,ADRES0,ADRES1,"** ACC **" *
+ 80DA           ;*    보조 서브 루틴: SCANN,DROT,DATADIS,INCREAS               *
+ 80DA           ;*              기능: 주소 증가와 증가된 주소의 데이터 표시    *
+ 80DA           ;***************************************************************
+ 80DA 852082    DRANDW:    MOV    DPL,ADRES0      ; DPL을 ADRES0에 있는 값을 지정
+ 80DD 852183               MOV    DPH,ADRES1      ; DPH를 ADRES1에 있는 값을 지정
+ 80E0 E4                   CLR    A
+ 80E1 93                   MOVC   A,@a+DPTR       
+ 80E2                      ; 표시를 위한 주소로부터 데이터를 누산기로 이동             
+ 80E2 F523                 MOV    DATA,A           
+ 80E4 128186               CALL   DATADIS         ; 데이터 표시 
+ 80E7 12835B               CALL   SCANN           ; 다음 키 입력이 있을 때 까지 대기
+                
+ 80EA B41108    TEST0:     CJNE   A,#INCKEY,TEST1 ; [,]  키 이면
+ 80ED 128120               CALL   DWRITE          ; 표시된 주소의 데이터 쓰기
+ 80F0 12812A               CALL   INCREAS         ; 주소 증가
+ 80F3 80E5                 JMP    DRANDW          ; DRADW 루틴으로 분기
+                                               
+ 80F5 B41508    TEST1:     CJNE   A,#DECKEY,TEST2 ; [INC] 키 이면
+ 80F8 128120               CALL   DWRITE          ; 표시된 주소의 데이터 쓰기
+ 80FB 12813B               CALL   DECREAS         ; 주소 감소 
+ 80FE 80DA                 JMP    DRANDW          ; DRADW 루틴으로 분기
+                
+ 8100 B41206    TEST2:     CJNE   A,#ENDKEY,TEST3 ; [.] 키 이면
+ 8103 128120               CALL   DWRITE          ; 표시된 주소의 데이터 쓰기
+ 8106 7412                 MOV    A,#ENDKEY        
+ 8108 22                   RET          
+                        
+ 8109 B41000    TEST3:     CJNE   A,#ERRCHK,TEST4 ; [NUMBER]키 이면 캐리 비트 "1"
+ 810C                                             ; [명령]키 이면 캐리 비트 "0"  
+                
+ 810C 500D      TEST4:     JNC    EERR1           ; [명령]키 이면 에러 표시
+ 810E F524                 MOV    DATAB,A         ; 새로운 데이터 입력
+ 8110 128169               CALL   DROT            ; 데이터 표시 이동
+ 8113 128186               CALL   DATADIS         ; 데이터 표시
+                
+ 8116 12835B               CALL   SCANN           ; 다음 키 입력까지 대기
+ 8119 80CF                 JMP    TEST0           ; 키 입력이 발생하면 다시 키 명령 수행
+                
+ 811B 74F1      EERR1:     MOV    A,#ERRCODE1     ; [R/W] 에러 코드 "F1" 표시
+ 811D 12832D               CALL   ERR             ; 에러 표시후 종료
+                
+ 8120           ;**************************************************************
+ 8120           ;*         서브 루틴: DWRITE(DATA WRITE)                      *
+ 8120           ;*              입력: ADRES0,ADRE1,DATA                       *
+ 8120           ;*              출력: DISPLAYED ADDRESS                       *
+ 8120           ;*              기능: 표시된 외부 데이터 메모리 주소에        *
+ 8120           ;*                    데이터 적기                             *
+ 8120           ;**************************************************************
+ 8120 852082    DWRITE:    MOV    DPL,ADRES0      ; DPL을 표시 하위 주소 ADRES0 지정
+ 8123 852183               MOV    DPH,ADRES1      ; DPH를 표시 상위 주소 ADRES1 지정
+ 8126 E523                 MOV    A,DATA          ; 데이터 창에 있는 데이터를 누산기로
+ 8128 F0                   MOVX   @DPTR,A         ; 누산기에 있는 데이터를 쓰기
+ 8129 22                   RET
+                
+ 812A           ;**************************************************************
+ 812A           ;*         서브 루틴: INCREAS                                 *
+ 812A           ;*              입력: ADRES0,ADRES1                           *
+ 812A           ;*              출력: ADRES0,ADRES1                           *
+ 812A           ;*    보조 서브 루틴: ADIS                                    *
+ 812A           ;*              기능: 주소를 증가 시키고 데이터 표시          * 
+ 812A           ;**************************************************************   
+ 812A E520      INCREAS:   MOV    A,ADRES0        ; 하위 주소를 누산기로
+ 812C 04                   INC    A               ; 하위 주소 증가
+ 812D F520                 MOV    ADRES0,A        ; 증가된 주소를 하위 주소로
+                
+ 812F B40005               CJNE   A,#00H,INCDIS   ; 상위 주소를 증가 시켜야 할지 체크
+ 8132                                             ; 하위 주소가 다 차지 않으면, 
+ 8132                                             ; 증가된 주소 표시 
+ 8132 E521                 MOV    A,ADRES1         
+ 8134 04                   INC    A               ; 상위 주소 증가
+ 8135 F521                 MOV    ADRES1,A        ; 증가된 주소를 상위 주소로
+                
+ 8137 128179    INCDIS:    CALL   ADIS            ; 주소 표시 루틴 호출
+ 813A 22                   RET                    ; 상위 루틴으로 복귀
+                          
+ 813B           ;**************************************************************
+ 813B           ;*         서브 루틴: DECREAS                                 *
+ 813B           ;*              입력: ADRES0,ADRES1                           *
+ 813B           ;*              출력: ADRES0,ADRES1                           *
+ 813B           ;*    보조 서브 루틴: ADIS                                    *
+ 813B           ;*              기능: 주소를 감소 시키고 데이터 표시          *
+ 813B           ;**************************************************************   
+ 813B E520      DECREAS:   MOV    A,ADRES0        ; 하위 주소를 누산기로 
+ 813D 14                   DEC    A               ; 하위 주소 감소
+ 813E F520                 MOV    ADRES0,A        ; 감소된 주소를 하위 주소로
+                
+ 8140 B4FF02               CJNE   A,#0FFH,DECEND  ; 상위 주소를 감소 시켜야 할지 체크
+ 8143 1521                 DEC    ADRES1          ; 상위 주소 감소
+                                                     
+ 8145 128179    DECEND:    CALL   ADIS            ; 주소 표시 루틴 호출
+ 8148 22                   RET                    ; 상위 루틴으로 복귀
+                
+ 8149           ;**************************************************************
+ 8149           ;*         서브 루틴: AROT  (ADDRESS ROTATE)                  *
+ 8149           ;*              입력: ADRESB                                  *
+ 8149           ;*              출력: ADRES0 , ADRES1                         *
+ 8149           ;*              기능: 주소 버퍼에 있는 주소 로테이트          *    
+ 8149           ;**************************************************************
+ 00F0           HIGH4      EQU    0F0H  ; 상위 주소를 얻기 위한 마스크 지정
+ 000F           LOW4       EQU    00FH  ; 하위 주소를 얻기 위한 마스크 지정
+                
+ 8149 E521      AROT:      MOV    A,ADRES1      ; 상위 주소를 누산기로
+ 814B 540F                 ANL    A,#LOW4       ; LOW4와 마스크
+ 814D C4                   SWAP   A             
+ 814E F521                 MOV    ADRES1,A      
+                
+ 8150 E520                 MOV    A,ADRES0      ; 하위 주소를 누산기로
+ 8152 54F0                 ANL    A,#HIGH4      ; HIGH4와 마스크
+ 8154 C4                   SWAP   A             
+ 8155 2521                 ADD    A,ADRES1      
+ 8157 F521                 MOV    ADRES1,A      
+                
+ 8159 E520                 MOV    A,ADRES0      ; 하위 주소를 누산기로
+ 815B 540F                 ANL    A,#LOW4       ; LOW4와 마스크
+ 815D C4                   SWAP   A             
+ 815E F520                 MOV    ADRES0,A       
+                
+ 8160 E522                 MOV    A,ADRESB      ; 주소 버퍼를 누산기로
+ 8162 540F                 ANL    A,#LOW4       ; LOW4와 마스크
+ 8164 2520                 ADD    A,ADRES0      
+ 8166 F520                 MOV    ADRES0,A      
+ 8168 22                   RET                  ; 상위 루틴으로 복귀
+                
+ 8169           ;*************************************************************
+ 8169           ;*         서브 루틴: DROT  (DATA ROTATE)                    *
+ 8169           ;*              입력: DATAB                                  *
+ 8169           ;*              출력: DATA                                   *
+ 8169           ;*              기능: 데이터 버퍼에 있는 데이터 로테이트     *
+ 8169           ;*************************************************************
+                
+ 8169 E523      DROT:      MOV    A,DATA        ; 표시된 주소에 있는 데이터를 누산기로
+ 816B 540F                 ANL    A,#LOW4       ; LOW4와 마스크
+ 816D C4                   SWAP   A             
+ 816E F523                 MOV    DATA,A        
+ 8170 E524                 MOV    A,DATAB       ; 데이터 버퍼에 있는 데이터를 누산기로
+ 8172 540F                 ANL    A,#LOW4       ; LOW4와 마스크
+ 8174 2523                 ADD    A,DATA        
+ 8176 F523                 MOV    DATA,A        
+ 8178 22                   RET                  ; 상위 루틴으로 복귀
+                
+ 8179           ;*************************************************************
+ 8179           ;*         서브 루틴: ADIS  (ADDRESS DISPLAY)                *
+ 8179           ;*              입력: ADRES0,ADRES1                          *
+ 8179           ;*              출력: ALED DISPLAY                           *
+ 8179           ;*************************************************************
+ 8179 E520      ADIS:      MOV    A,ADRES0      ; 하위 주소값을 누산기로
+ 817B 90FFC2               MOV    DPTR,#ALED0   ; DPTR을 하위 주소 표시 창 지정
+ 817E F0                   MOVX   @DPTR,A       ; 하위 주소 표시
+                                                   
+ 817F E521                 MOV    A,ADRES1      ; 상위 주소값을 누산기로 
+ 8181 90FFC3               MOV    DPTR,#ALED1   ; DPTR을 상위 주소 표시 창 지정
+ 8184 F0                   MOVX   @DPTR,A       ; 상위 주소 표시
+ 8185 22                   RET
+                
+ 8186           ;*************************************************************
+ 8186           ;*         서브 루틴: DATADIS(DATA DISPLAY)                  *
+ 8186           ;*              입력: DATA                                   *
+ 8186           ;*              출력: DLED                                   *
+ 8186           ;*              기능: 표시된 주소의 데이터 값을 표시         *
+ 8186           ;*************************************************************
+ 8186 E523      DATADIS:    MOV   A,DATA        ; 표시된 주소의 데이터를 누산기로 
+ 8188 90FFC1                MOV   DPTR,#DLED    ; DPTR을 데이터 표시 창 지정
+ 818B F0                    MOVX  @DPTR,A       ; 데이터 표시
+ 818C 22                    RET
+                
+ 818D           ;*************************************************************
+ 818D           ;*         서브 루틴: INTRAM(INTERNAL RAM)                   *
+ 818D           ;*              입력: 키 패드                                *
+ 818D           ;*              출력: ALED0,DLED,ADRES0,ADRESB,DATA,DATAB    *
+ 818D           ;*    보조 서브 루틴: CLEAER,SCANN,RAMROT,ADIS,RAMWRT,ERR    *
+ 818D           ;*              기능: 내부 메모리 읽기,쓰기                  *
+ 818D           ;*                    - 8비트 주소 ADRES0 만 사용            * 
+ 818D           ;*************************************************************
+ 818D 128319    INTRAM:     CALL  CLEAR         ; 표시창을 끄고 버퍼의 초기화
+ 8190 752000                MOV   ADRES0,#00H   ; 디폴트 내부 메모리 주소
+ 8193 3179                  CALL  ADIS          ; 시작 주소 표시
+                
+ 8195 12835B    RAMWAIT:    CALL  SCANN         ; 키 입력 값을 체크
+                
+ 8198 B41000    RAMCHK1:    CJNE  A,#ERRCHK,RAMCHK2 ; [숫자] 키 캐리 비트 "1"
+ 819B                                               ; [명령] 키 캐리 비트 "0"
+ 819B 5009      RAMCHK2:    JNC   RAMCHK3           ; [명령] 키 이면,[명령] 체크
+ 819D F522                  MOV   ADRESB,A          ; [숫자] 키 이면, 새로운 주소 입력
+ 819F 1281FC                CALL  RAMROT            ; 주소 표시 이동
+ 81A2 3179                  CALL  ADIS              ; 주소 표시
+ 81A4 80EF                  JMP   RAMWAIT           ; RAMWAIT로 분기
+                
+ 81A6 B41103    RAMCHK3:    CJNE  A,#INCKEY,RAMCHK4 ; [,] 키 이면
+ 81A9 1281BB                CALL  RAMWRT            ; RAMWRT 호출
+                                                     
+ 81AC B41503    RAMCHK4:    CJNE  A,#DECKEY,RAMCHK5 ; [INC] 키 이면 
+ 81AF 1281BB                CALL  RAMWRT            ; RAMWRT 호출
+                                                    
+ 81B2 B41201    RAMCHK5:    CJNE  A,#ENDKEY,ERR3    ; [.] 키 이면
+ 81B5 22                    RET                     ; 메인으로 복귀
+                
+ 81B6 74F3      ERR3:       MOV   A,#ERRCODE3       ; [REG] 에러코드 "F3"
+ 81B8 12832D                CALL  ERR               ; 에러 코드 표시
+                
+ 81BB           ;************************************************************
+ 81BB           ;*          서브 루틴: RAMWRT(INTERNAL RAM WRITE)           *
+ 81BB           ;*               입력: 키 패드                              *
+ 81BB           ;*               출력: ALED0,DLED,ADRES0,ADRESB,DATA,DATAB  *
+ 81BB           ;*     보조 서브 루틴: RAMROT,DROT,ADIS,DATADIS             * 
+ 81BB           ;*                     INCREAS,DECREAS                      *
+ 81BB           ;*               기능: 내부 메모리 내용 읽기,쓰기           *
+ 81BB           ;************************************************************
+ 81BB C0D0      RAMWRT:     PUSH  PSW               
+ 81BD D2D4                  SETB  PSW.4              ; 뱅크3 레지스터 사용   
+ 81BF D2D3                  SETB  PSW.3             
+                
+ 81C1 A820      RAMSTAT:    MOV   R0,ADRES0          ; R0에 ADRES0 값 저장
+ 81C3 8623                  MOV   DATA,@R0           
+ 81C5 3186                  CALL  DATADIS            ; 내부 메모리 데이터 표시
+                
+ 81C7 12835B                CALL  SCANN              ; 키 입력값 체크
+                
+ 81CA B41107    CHKRAM1:    CJNE  A,#INCKEY,CHKRAM2  ; [,]키 이면
+ 81CD 12820C                CALL  RAMDWRT            ; 내부 메모리 적기
+ 81D0 312A                  CALL  INCREAS            ; 주소 증가
+ 81D2 80ED                  JMP   RAMSTAT            ; RAMSTAT로 분기
+                
+ 81D4 B41507    CHKRAM2:    CJNE  A,#DECKEY,CHKRAM3  ; [INC]키 이면 
+ 81D7 12820C                CALL  RAMDWRT            ; 주소 적기
+ 81DA 313B                  CALL  DECREAS            ; 주소 증가
+ 81DC 80E3                  JMP   RAMSTAT            ; RAMSTART로 분기
+                
+ 81DE B41206    CHKRAM3:    CJNE  A,#ENDKEY,CHKRAM4  ; [.]키 이면
+ 81E1 12820C                CALL  RAMDWRT            ; 내부 메모리 적기
+ 81E4 D0D0                  POP   PSW                 
+ 81E6 22                    RET                      ; 상위 루틴으로 복귀
+                
+ 81E7 B41000    CHKRAM4:    CJNE  A,#ERRCHK,CHKRAM5  ; [명령]키 캐리 비트 "0"
+ 81EA                                                ; [숫자]키 캐리 비트 "1" 
+ 81EA 500B      CHKRAM5:    JNC   EERR3              ; [명령]키 ~ 에러 표시
+ 81EC F524                  MOV   DATAB,A            ; [숫자]키 ~ 새로운 데이터 입력
+ 81EE 3169                  CALL  DROT               ; 데이터 표시 이동
+ 81F0 3186                  CALL  DATADIS            ; 데이터 표시
+ 81F2 12835B                CALL  SCANN              ; 키 입력값 체크
+ 81F5 80D3                  JMP   CHKRAM1            ; 키 입력 발생시, CHKRAM1으로 분기
+                
+ 81F7 74F3      EERR3:      MOV   A,#ERRCODE3        ; [REG] 에러 코드 "F3"
+ 81F9 12832D                CALL  ERR                ; 에러 표시
+                
+ 81FC           ;***********************************************************
+ 81FC           ;*          서브 루틴: RAMROT  (RAM ADDRESS ROTATE)        *
+ 81FC           ;*               입력: ADRESB                              *
+ 81FC           ;*               출력: ADRES0                              *
+ 81FC           ;*               기능: 주소 표시 이동                      *
+ 81FC           ;***********************************************************
+ 81FC E520      RAMROT:     MOV   A,ADRES0           ; 주소값을 누산기로
+ 81FE 540F                  ANL   A,#LOW4            ; LOW4 마스크
+ 8200 C4                    SWAP  A                  
+ 8201 F520                  MOV   ADRES0,A           
+ 8203 E522                  MOV   A,ADRESB           ; 주소 버퍼 값을 누산기로
+ 8205 540F                  ANL   A,#LOW4            ; LOW4 마스크
+ 8207 2520                  ADD   A,ADRES0           
+ 8209 F520                  MOV   ADRES0,A           
+ 820B 22                    RET                      ; 상위 루틴으로 복귀
+                
+ 820C           ;***********************************************************
+ 820C           ;*          서브 루틴: RAMDWRT(WRITE RAM DATA)             *
+ 820C           ;*               입력: ADRES0,DATA                         *
+ 820C           ;*               출력: DISPLAYED ADDRESS                   *
+ 820C           ;*               기능: 내부 메모리 쓰기                    *
+ 820C           ;*                     뱅크3 레지스터의 R0 가 사용         *
+ 820C           ;***********************************************************
+ 820C A820      RAMDWRT:    MOV   R0,ADRES0          ; R0에 ADRES0 값 저장
+ 820E A623                  MOV   @R0,DATA           ; R0에 의한 간접 번지 지정
+ 8210 22                    RET                      ; 상위 루틴 복귀
+                
+ 8211           ;***********************************************************
+ 8211           ;*          서브 루틴: PROGMEM (PROGRAMM MEMORY)           *
+ 8211           ;*               입력: 키 패드                             *
+ 8211           ;*               출력: 6개의 7_SEGMENT 표시                *     
+ 8211           ;*     보조 서브 루틴: ROMREAD                             *
+ 8211           ;*               기능: 프로그램 메모리의 내용 읽기         *
+ 8211           ;***********************************************************
+ 8211 128319    PROGMEM:    CALL  CLEAR              ; 표시창을 끄고 버퍼의 초기화
+ 8214 752000                MOV   ADRES0,#00H        ; 디폴트 프로그램 메모리 하위 주소
+ 8217 752100                MOV   ADRES1,#00H        ; 디폴트 프로그램 메모리 상위 주소   
+ 821A 3179                  CALL  ADIS               ; 초기 주소 표시
+ 821C 12824F                CALL  ROMREAD            ; 초기 주소의 데이터 읽기
+                
+                
+ 821F 12835B    ROMSTART:   CALL  SCANN              ; 키 입력 체크
+                
+ 8222 B41000    ROMCHK1:    CJNE  A,#ERRCHK,ROMCHK2  ; [숫자] 키 이면 캐리 비트 "1"
+ 8225                                                ; [명령] 키 이면 캐리 비트 "0"
+ 8225 500B      ROMCHK2:    JNC   ROMCHK3            ; [명령] 키 이면 , [명령] 체크
+ 8227 F522                  MOV   ADRESB,A           ; 주소 버퍼로 새로운 주소 입력
+ 8229 3149                  CALL  AROT               ; 주소 표시 이동
+ 822B 3179                  CALL  ADIS               ; 주소 표시
+ 822D 12824F                CALL  ROMREAD            ; 새로운 주소의 프로그램 메모리 읽기
+ 8230 80ED                  JMP   ROMSTART           ; ROMSTART로 분기
+                
+ 8232 B41107    ROMCHK3:    CJNE  A,#INCKEY,ROMCHK4  ; [,]키 이면
+ 8235 312A                  CALL  INCREAS            ; 프로그램 메모리 주소 증가
+ 8237 12824F                CALL  ROMREAD            ; 증가된 주소의 데이터 읽기,표시
+ 823A 80E3                  JMP   ROMSTART           ; ROMSTART로 분기
+                
+ 823C B41507    ROMCHK4:    CJNE  A,#DECKEY,ROMCHK5  ; [INC]키 이면
+ 823F 313B                  CALL  DECREAS            ; 프로그램 메모리 주소 감소
+ 8241 12824F                CALL  ROMREAD            ; 감소된 주소의 데이터 읽기,표시
+ 8244 80D9                  JMP   ROMSTART           ; ROMSTART로 분기
+                
+ 8246 B41201    ROMCHK5:    CJNE  A,#ENDKEY,ERR2     ; [.]키 이면
+ 8249 22                    RET                      ; 프로그램 메모리 읽기 종료
+                
+ 824A 74F2      ERR2:       MOV   A,#ERRCODE2        ; [CD] 에러 코드 "F2" 표시
+ 824C 12832D                CALL  ERR                ; 에러 표시 후 종료
+                
+ 824F           ;**********************************************************
+ 824F           ;*          서브 루틴: ROMREAD                            *
+ 824F           ;*               입력: ADRES0,ADRES1                      *
+ 824F           ;*               출력: 데이터 표시 창                     *
+ 824F           ;*               기능: 프로그램 메모리로부터  데이터 읽기 *
+ 824F           ;**********************************************************
+ 824F 852183    ROMREAD:    MOV   DPH,ADRES1         ; 프로그램 메모리 상위 주소 지정
+ 8252 852082                MOV   DPL,ADRES0         ; 프로그램 메모리 하위 주소 지정
+ 8255 7400                  MOV   A,#00H             ; 누산기를 초기화
+ 8257 93                    MOVC  A,@A+DPTR          ; 프로그램 메모리 읽기
+ 8258 F523                  MOV   DATA,A             ; DATA로 프로그램 메모리 값 이동
+ 825A 3186                  CALL  DATADIS            ; 프로그램 메모리 내용 표시
+ 825C 22                    RET                      ; 상위 루틴으로 복귀
+                
+ 825D           ;**********************************************************
+ 825D           ;*          서브 루틴: SINGLE (SINGLE STEP)               *
+ 825D           ;*               입력: 키 패드                            *
+ 825D           ;*               출력: 사용자 정의 메모리 (20H -2FH)      *
+ 825D           ;*                     주소,데이터 표시창                 *
+ 825D           ;*     보조 서브 루틴: SCANN,AROT,DIS8051,DISUPC,EXECUTE  *
+ 825D           ;*               기능: 싱글 스텝 동작 수행                *
+ 825D           ;*                     사용자 PC표시                      *
+ 825D           ;**********************************************************
+ 825D 128319    SINGLE:     CALL  CLEAR              ; 표시창 끄고 , 버퍼 초기화
+ 8260 128294                CALL  DISUPC             ; 디폴트 시작 주소 표시
+                
+ 8263 12835B    WAITKEY:    CALL  SCANN              ; 키 입력값 조사
+                                                                    
+ 8266 B41000    CHECK1:     CJNE  A,#ERRCHK,CHECK2   ; [명령] 키 이면 캐리 비트 "0"
+ 8269                                                ; [숫자] 키 이면 캐리 비트 "1"
+                
+ 8269 500E      CHECK2:     JNC   CHECK3             ; [명령] 키 이면, 어떤 명령 키 인지 조사
+ 826B F522                  MOV   ADRESB,A           ; 싱글 스텝의 시작 주소 입력
+ 826D 3149                  CALL  AROT               ; 주소 표시 이동
+ 826F 852128                MOV   UPCH,ADRES1        ; 상위 시작 주소를 UPCH로
+ 8272 852029                MOV   UPCL,ADRES0        ; 하위 시작 주소를 UPCL로
+ 8275 3179                  CALL  ADIS               ; 주소 표시
+ 8277 80EA                  JMP   WAITKEY            ; WAITKEY로 분기
+                
+ 8279 B41705    CHECK3:     CJNE  A,#ST,CHECK4       ; [ST]키 이면
+ 827C 128294                CALL  DISUPC             ; 사용자 [PC] 표시
+ 827F 80E2                  JMP   WAITKEY            ; WAITKEY로 분기
+                
+ 8281 B41107    CHECK4:     CJNE  A,#INCKEY,CHECK5   ; [,]키 이면
+ 8284 D228                  SETB  CMD.0              ; 싱글 스텝 수행 루틴임을 나타냄
+ 8286 12829D                CALL  EXCUTE             ; 한 명령 수행 루틴 호출
+ 8289 80D8                  JMP   WAITKEY            ; WAITKEY로 분기
+                
+ 828B B41201    CHECK5:     CJNE  A,#ENDKEY,ERR4     ; [.]키 이면
+ 828E 22                    RET                      ; 메인으로 복귀
+                
+ 828F 74F4      ERR4:       MOV   A,#ERRCODE4        ; [ST]에러 표시 "F4"
+ 8291 12832D                CALL  ERR                ; 에러 표시
+                
+ 8294           ;*********************************************************
+ 8294           ;*          서브 루틴: DISUPC                            *
+ 8294           ;*               입력: UPCH,UPCL                         *
+ 8294           ;*               출력: ADRES0,ADRE1,ALED0,ALED1          *
+ 8294           ;*     보조 서브 루틴: ADIS                              *
+ 8294           ;*               기능: [ST] 키 입력에 의해               * 
+ 8294           ;*                     사용자 PC 표시                    *
+ 8294           ;*********************************************************
+ 8294 852821    DISUPC:     MOV   ADRES1,UPCH       ; 사용자 상위 PC의 주소
+ 8297 852920                MOV   ADRES0,UPCL       ; 사용자 하위 PC의 주소
+ 829A 3179                  CALL  ADIS              ; 사용자 PC의 표시
+ 829C 22                    RET                     ; 상위 루틴을 복귀
+                
+ 829D           ;*********************************************************
+ 829D           ;*          서브 루틴: EXCUTE                            *
+ 829D           ;*               입력: UPCH,UPCL                         *
+ 829D           ;*               출력: UPCH,UPCL                         *
+ 829D           ;*                 ~ 한 명령이 수행된 후 증가된 PC값     *     
+ 829D           ;*     보조 서브 루틴: READY,REVERSE,UPCINC,SPECIAL      *
+ 829D           ;*               기능: UPC가 가리키는 한 명령을          *
+ 829D           ;*                     수행한 후 UPC 증가                *
+ 829D           ;*********************************************************
+ 829D E52D      EXCUTE:     MOV   A,UACC            ; 싱글 스텝 실행시 필요한
+ 829F 852CD0                MOV   PSW,UPSW          ; 레지스터 값으로 바꿈
+ 82A2 852A83                MOV   DPH,UDPH          
+ 82A5 852B82                MOV   DPL,UDPL    
+                
+ 82A8 858126                MOV   MSP,SP            ; 현재의 SP 값을 MSP에 보존
+                
+ 82AB 852E81                MOV   SP,USP            ; SP 값의 이동
+                
+ 82AE C029                  PUSH  UPCL   
+ 82B0 C028                  PUSH  UPCH   
+                
+ 82B2 758CFF    	    MOV	  TH0,#0FFH         ; 타이머 세팅
+ 82B5 758AFE    	    MOV	  TL0,#0FEH         
+ 82B8 D28C                  SETB  TR0		    ; 타이머 동작 실행
+ 82BA 22                    RET                     ; JMP 명령 실행과 같은 결과 발생
+                
+ 82BB           ;*********************************************************
+ 82BB           ;*          서브 루틴: DBLEQU                            *
+ 82BB           ;*               입력: UPCH ,UPCL, ADRES0,ADRES1         *
+ 82BB           ;*               출력: ACC 0:EQUAL 1:NOT EQUAL           *
+ 82BB           ;*               기능: 중단점 주소와                     *
+ 82BB           ;*                     다음 실행 명령 주소 비교          *
+ 82BB           ;*********************************************************
+ 82BB E529      DBLEQU:     MOV   A,UPCL            ; 다음 실행 명령 하위 주소
+ 82BD 6520                  XRL   A,ADRES0          ; (XRL) 중단점 하위 주소
+ 82BF 7004                  JNZ   RETURN            ; 일치 하지 않으면 복귀
+                
+ 82C1 E528                  MOV   A,UPCH            ; 다음 실행 명령 상위 주소
+ 82C3 6521                  XRL   A,ADRES1          ; (XRL) 중단점 상위 주소
+ 82C5 22        RETURN:     RET                     ; 마지막 결과값 전달
+                
+ 82C6           ;*********************************************************
+ 82C6           ;*          서브 루틴: BRK (BREAK POINT)                 *
+ 82C6           ;*               입력: 키 패드                           *
+ 82C6           ;*               출력: 사용자 정의 메모리 (20H -2FH)     *
+ 82C6           ;*                     주소,데이터 표시창                *
+ 82C6           ;*     보조 서브 루틴: SCANN,AROT,DIS8051,DISUPC,EXECUTE *
+ 82C6           ;*               기능: 중단점까지 프로그램 실행          *
+ 82C6           ;*********************************************************
+ 82C6 128319    BRK:        CALL  CLEAR    ; 표시창 끄기, 버퍼의 초기화
+ 82C9 5194                  CALL  DISUPC   ; 디폴트 프로그램 실행 시작 주소 표시
+                
+ 82CB 12835B    WAITBRK:    CALL  SCANN    ; 키 입력값 조사
+                                          
+ 82CE B41000    BRKCHK1:    CJNE  A,#ERRCHK,BRKCHK2 ; [명령]키 이면 캐리 비트 "0" 
+ 82D1                                               ; [숫자]키 이면 캐리 비트 "1" 
+                
+ 82D1 500E      BRKCHK2:    JNC   BRKCHK3           ; [명령]키 이면 어떤 명령인지 조사
+ 82D3 F522                  MOV   ADRESB,A          ; [숫자]키 이면 새로운 주소 입력
+ 82D5 3149                  CALL  AROT              ; 주소 표시 이동
+ 82D7 852128                MOV   UPCH,ADRES1       ; 상위 주소 UPCH로 지정
+ 82DA 852029                MOV   UPCL,ADRES0       ; 하위 주소 UPCL로 지정
+ 82DD 3179                  CALL  ADIS              ; 주소 표시
+ 82DF 80EA                  JMP   WAITBRK           ; WAITBRK로 분기
+                
+ 82E1 B41206    BRKCHK3:    CJNE  A,#ENDKEY,BRKCHK4 ; [.]키 이면
+                
+ 82E4 C228      EXE:        CLR   CMD.0             ; 프로그램 실행 명령 루틴임을 나타냄
+ 82E6 519D                  CALL  EXCUTE            ; EXECUTE 루틴 호출
+ 82E8 8018                  SJMP  WAIT_KEY          ; WAIT_KEY 루틴으로 분기
+                
+ 82EA B41110    BRKCHK4:    CJNE  A,#INCKEY,CHKBRK3 ; [,]키 이면
+                
+ 82ED 12835B    WAITBRK2:   CALL  SCANN             ; 키 입력값 조사
+                
+ 82F0 B41000    CHKBRK1:    CJNE  A,#ERRCHK,CHKBRK2 
+ 82F3 5008      CHKBRK2:    JNC   CHKBRK3           ; 키 입력이 [숫자] 이면
+ 82F5 F522                  MOV   ADRESB,A          ; 주소 입력
+ 82F7 3149                  CALL  AROT              ; 주소 표시 이동
+ 82F9 3179                  CALL  ADIS              ; 주소 표시
+ 82FB 80F0                  JMP   WAITBRK2          ; WAITBRK2로 분기
+                
+ 82FD B41206    CHKBRK3:    CJNE  A,#ENDKEY,ERR5    ; [.]키 이면
+ 8300 80E2                  JMP   EXE               ; EXE로 분기. 프로그램 실행
+                
+ 8302 12835B    WAIT_KEY:   CALL  SCANN             ; 키 입력값 조사
+ 8305 22                    RET                     ; 상위 루틴으로 복귀
+                
+ 8306 74F5      ERR5:       MOV   A,#ERRCODE5       ; 에러 코드 "F5" 
+ 8308 12832D                CALL  ERR               ; 에러 코드 표시
+                
+ 830B           ;************************************************************
+ 830B           ;*          서브 루틴: DIS8051(DISPLAY 8051)                *
+ 830B           ;*               입력: 없음                                 *
+ 830B           ;*               출력: ADRES1,ADRES0,DATA,ALED1,ALED0,DLED  *
+ 830B           ;*     보조 서브 루틴: ADIS,DATADIS                         *
+ 830B           ;*               기능: 80 51 00 표시                        *
+ 830B           ;************************************************************
+ 830B 752180    DIS8051:    MOV   ADRES1,#80H 
+ 830E 752051                MOV   ADRES0,#51H 
+ 8311 752300                MOV   DATA,#00H   
+ 8314 3179                  CALL  ADIS       
+ 8316 3186                  CALL  DATADIS    
+ 8318 22                    RET             
+                
+ 8319           ;************************************************************
+ 8319           ;*          서브 루틴: CLEAR(OFF ALL LED)                   *
+ 8319           ;*               입력: 없음                                 *
+ 8319           ;*               출력: ADRES0,ADRES1,ADRESB,                *
+ 8319           ;*                     DATA,DATAB,ALED0,ALED1,DLED          *
+ 8319           ;*     보조 서브 루틴: ADIS,DATADIS                         *
+ 8319           ;*               기능: 7_SEGMENT를 끄고                     *
+ 8319           ;*                     주소와 데이터 버퍼를 초기화          * 
+ 8319           ;************************************************************
+ 8319 7520FF    CLEAR:      MOV   ADRES0,#00FFH   
+ 831C 7521FF                MOV   ADRES1,#00FFH   
+ 831F 752200                MOV   ADRESB,#00H     
+ 8322 7523FF                MOV   DATA,#00FFH     
+ 8325 752400                MOV   DATAB,#00H      
+ 8328 3179                  CALL  ADIS           
+ 832A 3186                  CALL  DATADIS        
+ 832C 22                    RET                 
+                
+ 832D           ;************************************************************
+ 832D           ;*          서브 루틴: ERR(ERROR)                           *
+ 832D           ;*               입력: ACC                                  *
+ 832D           ;*               출력: SP (INITIALIZE Stack Pointer)        *
+ 832D           ;*               기능: 에러 코드 표시 , SP의 초기화         *
+ 832D           ;************************************************************
+ 832D C0D0      ERR:        PUSH  PSW          
+ 832F D2D3                  SETB  PSW.3          ; 뱅크3 레지스터 사용
+ 8331 D2D4                  SETB  PSW.4
+                 
+ 8333 F527                  MOV   TMP0,A         ; 누산기 값의 보존
+                          
+                
+ 8335 7905      RELOAD:     MOV   R1,#5          ; 5번 깜빡거림
+                
+ 8337 710B      ERRDIS:     CALL  DIS8051        ; 8051 표시
+ 8339 852723                MOV   DATA,TMP0      ; 에러 코드 읽기
+ 833C 3186                  CALL  DATADIS        ; 에러 코드 표시
+ 833E 128353                CALL  LDELAY         ; 일정 시간 에러 표시
+ 8341 7119                  CALL  CLEAR          ; 표시창 끄기
+ 8343 128353                CALL  LDELAY         ; 일정 시간 끄기
+ 8346 D9EF                  DJNZ  R1 , ERRDIS    ; 반복 수행
+                
+ 8348 E4                    CLR   A
+ 8349 1283A1                CALL  SUBKEY       
+                          
+ 834C B4FFE6                CJNE  A,#0FFH,RELOAD ; 키 입력이 있으면 반복
+ 834F D0D0                  POP   PSW            
+ 8351 0106                  JMP   START          ; 에러 코드 표시후 다시 시작
+                
+ 8353           ;***********************************************************
+ 8353           ;*          서브 루틴: 시간 지연                           *
+ 8353           ;***********************************************************
+ 8353           LDELAY:   
+ 8353 7810                  MOV   R0,#010H
+                
+ 8355 128398    LONGDEL:    CALL  DELAY
+ 8358 D8FB                  DJNZ  R0,LONGDEL
+ 835A 22                    RET
+                
+ 835B           ;******************************************************************
+ 835B           ;*          서브 루틴: SCANN (KEY SCANN RUTINE -- MOST IMPORTANT) *
+ 835B           ;*               입력: 없음                                       *  
+ 835B           ;*               출력: 누산기 ---  KEY_INDEX                      * 
+ 835B           ;*     보조 서브 루틴: SUBKEY,INDEX,DELAY                         *
+ 835B           ;*     사용 레지 스터: R0(DATA),R1(COL),R2(ROW),R6,R7(CLOCK) USED *
+ 835B           ;******************************************************************
+ 835B C0D0      SCANN:      PUSH  PSW            ; PSW값을 스택에 보관
+ 835D D2D4                  SETB  PSW.4          ; 뱅크3 레지스터 사용
+ 835F D2D3                  SETB  PSW.3 
+                
+ 8361 128398                CALL  DELAY          ; 키를 누르고 있는 동안의 시간 지연
+                
+ 8364 7400      HOLD:       MOV   A,#00H         ; 데이터 아웃으로 데이터 적기(00H)
+ 8366 1283A1                CALL  SUBKEY         ; 데이터 인으로 데이터 읽기
+ 8369 64FF                  XRL   A,#0FFH        ; 데이터 인 값 (XRL) 11111111B
+                
+ 836B 70F7      HOLD1:      JNZ   HOLD           
+                
+ 836D 128398                CALL  DELAY          ; 키를 떼고 있는 동안의 시간 지연
+                
+ 8370 7900      INITIAL:    MOV   R1,#00H        ; R1 (COL)의 초기화
+ 8372 74EF                  MOV   A,#11101111B   ; 최초 입력 데이터
+                
+ 8374 F8        COLSCAN:    MOV   R0,A           ; R0 : 키 스캔 입력 데이터
+ 8375 09                    INC   R1             ; R1 : 열의 값 저장
+ 8376 1283A1                CALL  SUBKEY         ; 키 값 스캔
+ 8379 64FF                  XRL   A,#0FFH        ; 데이터 아웃 (XRL) 11111111B
+ 837B 7007                  JNZ   RSCAN          ; 키가 눌러 졌으면, 0이 아닌 값을 가진다.
+ 837D E8                    MOV   A,R0
+ 837E D3                    SETB  C
+ 837F 13                    RRC   A              ; 다음 열의 스캔값 지정
+ 8380 50EE                  JNC   INITIAL        ; 모든 열을 스캔하면, 다시 시작
+ 8382 80F0                  JMP   COLSCAN        ; 다음 열 스캔을 위한 분기
+                
+ 8384 7A00      RSCAN:      MOV   R2,#00H        ; R2 : 행의 값 저장
+ 8386 13        ROWSCAN:    RRC   A              ; 어느 행이 눌러 졌는지 조사.
+ 8387                                            ; XRL 연산 결과 눌러진 키의 행은 "1"
+ 8387                                            ; RRC 연산을 통해 캐리 비트 체크 
+ 8387 4003                  JC    MATRIX         ; 캐리가 발생했으면, MATRIX 로 분기 
+ 8389 0A                    INC   R2             ; 캐리가 발생하지 않았으면,
+ 838A                                            ; 다음 행으로 이동 
+ 838A 80FA                  JMP   ROWSCAN        ; ROWSCAN으로 분기 
+                         
+ 838C EA        MATRIX:     MOV   A,R2           ; R2 행의 값 보존
+ 838D 75F005                MOV   B,#05H         ; 1행은 5개의 열로 이루어짐
+ 8390 A4                    MUL   AB             ; 2차원 값은 1차원 값으로 바꿈
+ 8391 29                    ADD   A,R1           ; R1 열의 값 보존
+ 8392                                            ; 누산기의 값 = R2*5 +R1
+ 8392 1283AA                CALL  INDEX          ; 키 코드 값을 읽어옴
+                
+ 8395 D0D0      BRKOUT:     POP   PSW            ; PSW값의 복원
+ 8397 22                    RET                  ; 상위 루틴으로 복귀
+                
+ 8398           ;*************************************************************
+ 8398           ;*          서브 루틴: 시간 지연 루틴                        *
+ 8398           ;*               입력: 없음                                  *
+ 8398           ;*               출력: 없음                                  *
+ 8398           ;*               기능: 없음(키 바운스 현상)                  *
+ 8398           ;*************************************************************
+ 8398 7F20      DELAY:      MOV   R7,#020H      
+                
+ 839A 7EF0      DELAY1:     MOV   R6,#0FF0H     
+ 839C DEFE      DELAY2:     DJNZ  R6,DELAY2    
+ 839E DFFA                  DJNZ  R7,DELAY1    
+ 83A0 22                    RET
+                
+ 83A1           ;*************************************************************
+ 83A1           ;*          서브 루틴: SUBKEY                                *
+ 83A1           ;*               입력: ACC                                   *
+ 83A1           ;*               출력: ACC                                   *
+ 83A1           ;*               기능: 데이터 아웃으로 데이터를 적은 후      *
+ 83A1           ;*                     데이터 인으로 데이터를 읽어 들임      *
+ 83A1           ;*************************************************************
+ 83A1 90FFF0    SUBKEY:     MOV   DPTR,#DATAOUT
+ 83A4 F0                    MOVX  @DPTR,A
+ 83A5 90FFF1                MOV   DPTR,#DATAIN
+ 83A8 E0                    MOVX  A,@DPTR
+ 83A9 22                    RET
+                
+ 83AA           ;**************************************************************
+ 83AA           ;*          서브 루틴: INDEX                                  *
+ 83AA           ;*               입력: ACC                                    *
+ 83AA           ;*               출력: ACC                                    *
+ 83AA           ;*               기능: 정의된 키 코드 값을 읽어 오기          *
+ 83AA           ;**************************************************************
+ 83AA 83        INDEX:      MOVC  A,@A+PC    ; 1~24 까지의 값을 가짐 
+ 83AB 22                    RET
+ 83AC 17        KEYBASE:    DB    ST         ;SW1,ST             1
+ 83AD 15                    DB    DECKEY     ;SW6,INC            2
+ 83AE 16                    DB    CODE       ;SW11,CODE          3
+ 83AF 14                    DB    REG        ;SW15,REG           4
+ 83B0 13                    DB    GO         ;SW19,GO            5
+ 83B1 0C                    DB    0CH        ;SW2,C              6
+ 83B2 0D                    DB    0DH        ;SW7,D              7
+ 83B3 0E                    DB    0EH        ;SW12,E             8
+ 83B4 0F                    DB    0FH        ;SW16,F             9
+ 83B5 11                    DB    INCKEY     ;SW20,COMMA (,)    10
+ 83B6 08                    DB    08H        ;SW3,8             11
+ 83B7 09                    DB    09H        ;SW8,9             12
+ 83B8 0A                    DB    0AH        ;SW13,A            13
+ 83B9 0B                    DB    0BH        ;SW17,B            14
+ 83BA 12                    DB    ENDKEY     ;SW21,PERIOD(.)    15
+ 83BB 04                    DB    04H        ;SW4,4             16
+ 83BC 05                    DB    05H        ;SW9,5             17
+ 83BD 06                    DB    06H        ;SW14,6            18
+ 83BE 07                    DB    07H        ;SW18,7            19
+ 83BF 10                    DB    RWKEY      ;SW22,R/W          20
+ 83C0 00                    DB    00H        ;SW5,0             21
+ 83C1 01                    DB    01H        ;SW10,1            22
+ 83C2 02                    DB    02H        ;SW24,2            23
+ 83C3 03                    DB    03H        ;SW23,3            24
+ 83C4 18                    DB    RST        ;SW24  RST KEY     25
+                
+ 83C5           ;*************************************************************
+ 83C5           ;*         8900 번지에 로드될 시계 프로그램                  *
+ 83C5           ;*************************************************************
+ 8900                      ORG    8900H
+ FFC3           LEDHOU     EQU    0FFC3H       ; 시(HOUR) 표시 창의 주소
+ FFC2           LEDMIN     EQU    0FFC2H       ; 분(MIN)  표시 창의 주소
+ FFC1           LEDSEC     EQU    0FFC1H       ; 초(SEC)  표시 창의 주소
+                                
+ 8900 128947               LCALL  ALLCLEAR     ; 초기화
+                                        
+ 8903 7802      CLOCK:     MOV    R0,#2
+ 8905 D8FE                 DJNZ   R0, $
+                               
+ 8907 BD590B    CONDITON:  CJNE   R5,#59H,SEC  ; "초" 단위 비교
+                                                     
+ 890A BE5911               CJNE   R6,#59H,MIN  ; "분" 단위 비교
+                
+ 890D BF2321               CJNE   R7,#23H,HOUR ; "초" 단위 비교
+                                                       
+ 8910 3147                 ACALL  ALLCLEAR     ; 다시 초기화
+ 8912 028903               LJMP   CLOCK        ; 다시 시작
+                                          
+ 8915 ED        SEC:       MOV    A,R5    
+ 8916 2401                 ADD    A,#1H        ; "초" 단위 증가 
+ 8918 D4                   DA     A            ; 십진수 표현 
+ 8919 FD                   MOV    R5,A    
+ 891A 3167                 ACALL  DISSEC  
+ 891C 80E5                 SJMP   CLOCK   
+                                                
+ 891E EE        MIN:       MOV    A,R6               
+ 891F 2401                 ADD    A,#1H        ; "분" 단위 증가      
+ 8921 D4                   DA     A            ; 십진수 표현                 
+ 8922 FE                   MOV    R6,A
+ 8923 12895A               LCALL  CLRSEC       ; 초(SEC) 초기화
+ 8926 128962               LCALL  DISMIN       ; 분(MIN) 표시 루틴 호출
+ 8929 7400                 MOV    A,#00H
+ 892B 128967               LCALL  DISSEC       ; 초(SEC) 표시 루틴 호출
+ 892E 028903               LJMP   CLOCK        ; CLOCK 으로 분기
+                                                 
+ 8931 EF        HOUR:      MOV    A,R7
+ 8932 2401                 ADD    A,#1H
+ 8934 D4                   DA     A
+ 8935 FF                   MOV    R7,A
+ 8936 128958               LCALL  CLRMIN
+ 8939 12895D               LCALL  DISHOU
+ 893C 7400                 MOV    A,#00H
+ 893E 128962               LCALL  DISMIN
+ 8941 128967               LCALL  DISSEC
+ 8944 028903               LJMP   CLOCK
+                      
+ 8947 128956    ALLCLEAR:  LCALL  CLRHOU       ; 시,분,초 초기화
+ 894A 7400                 MOV    A,#00H       ; 각각의 표시 창 호출
+ 894C 12895D               LCALL  DISHOU
+ 894F 128962               LCALL  DISMIN
+ 8952 128967               LCALL  DISSEC
+ 8955 22                   RET
+                                                
+ 8956 7F00      CLRHOU:    MOV    R7,#0H       ; 시 변수 초기화
+ 8958 7E00      CLRMIN:    MOV    R6,#0H       ; 분 변수 초기화
+ 895A 7D00      CLRSEC:    MOV    R5,#0H       ; 초 변수 초기화
+ 895C 22                   RET
+                                                
+ 895D 90FFC3    DISHOU:    MOV    DPTR,#LEDHOU ; 시 표시 루틴
+ 8960 F0                   MOVX   @DPTR,A      
+ 8961 22                   RET                 
+                                               
+ 8962 90FFC2    DISMIN:    MOV    DPTR,#LEDMIN ; 분 표시 루틴
+ 8965 F0                   MOVX   @DPTR,A
+ 8966 22                   RET
+                
+ 8967 90FFC1    DISSEC:    MOV    DPTR,#LEDSEC ; 초 표시 루틴
+ 896A F0                   MOVX   @DPTR,A
+ 896B 22                   RET
+                
+ 9F0B                      ORG    9F0BH  
+                           ; 인터럽트 서비스 루틴의 시작 주소 
+ 9F0B 028056               JMP    SERVICE 
+                
+ 9F0E           END
+
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: D:\WORK8051\8051실험\MONITER\SINGLE3.ASM
+
+
+

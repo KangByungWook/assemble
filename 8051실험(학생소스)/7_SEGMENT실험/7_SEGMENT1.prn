@@ -1,0 +1,34 @@
+                ;7_SEGMENT 실험 1 ~  a~dot 를 순서대로 켜는 실험 
+                
+ FFC0           SEVENSEG        EQU   0FFC0H       ; 7_SEGMENT 주소  
+                     
+ 8000                           ORG   8000H
+                
+ 8000 74FF      START:          MOV   A,#11111111B ; 7_SEGMENT 끄기
+ 8002 C3                        CLR   C            ; 캐리 비트 클리어
+                
+ 8003 12800E    LOOP:           CALL  SEVENDIS     ; 7_SEGMENT 표시 루틴 호출                
+ 8006 128013                    CALL  DELAY        ; 일정 시간 지연
+ 8009 33                        RLC   A              
+ 800A 40F7                      JC    LOOP         ; 다음 부분 이동
+ 800C 80F2                      JMP   START        ; 반복 동작 수행 
+ 800E                                              ; 7_SEGMENT 표시 루틴
+ 800E 90FFC0    SEVENDIS:       MOV   DPTR,#SEVENSEG   
+ 8011 F0                        MOVX  @DPTR,A
+ 8012 22                        RET
+ 8013                                              ; 시간 지연 루틴                   
+ 8013 78FF      DELAY:          MOV   R0,#0FFH
+ 8015 79FF      DELAY1:         MOV   R1,#0FFH
+ 8017 D9FE      DELAY2:         DJNZ  R1,DELAY2
+ 8019 D8FA                      DJNZ  R0,DELAY1  
+ 801B 22                        RET  
+ 801C           END 
+
+ PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
+
+                          Multiware & Image
+
+ SOURCE FILE NAME: C:\USERS\DOWON\DESKTOP\PKG\8051실험(학생소스)\7_SEGMENT실험\7_SEGMENT1.ASM
+
+
+
