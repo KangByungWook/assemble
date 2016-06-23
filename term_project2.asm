@@ -281,20 +281,20 @@ CLOCK_RUN_MODE:
 	    
 	;시간정보            
 	MOV     NUMFONT,#02H
-	MOV	    A, INFO1
+	MOV	A, INFO1
 	MOV     B, #10H
 	DIV     AB
-	MOV	    NUM1, A
+	MOV	NUM1, A
 	MOV     NUM2, B
 	MOV     DISNUM,NUM1		;시간정보 십자리
 	CALL    DISFONT 
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,NUM2		;시간정보 일자리
 	CALL    DISFONT
 	    
 	;콜론
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0AH
 	CALL    DISFONT
@@ -303,20 +303,20 @@ CLOCK_RUN_MODE:
 	;분 정보
 	MOV     LCOL,#09H
 	CALL    CUR_MOV
-	MOV	    A, INFO2
+	MOV	A, INFO2
 	MOV     B, #10H
 	DIV     AB
-	MOV	    NUM1, A
+	MOV	NUM1, A
 	MOV     NUM2, B
 	MOV     DISNUM,NUM1		;분정보 십자리
 	CALL    DISFONT
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,NUM2		;분정보 일자리
 	CALL    DISFONT
 
 	;콜론
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0AH
 	CALL    DISFONT
@@ -328,11 +328,11 @@ CLOCK_RUN_MODE:
 	MOV	A, INFO3
 	MOV     B, #10H
 	DIV     AB
-	MOV	    NUM1, A
+	MOV	NUM1, A
 	MOV     NUM2, B
 	MOV     DISNUM,NUM1		;초정보 십자리
 	CALL    DISFONT
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,NUM2		;초정보 일자리
 	CALL    DISFONT
@@ -341,11 +341,11 @@ CLOCK_RUN_MODE:
 	CJNE	A, #00H, DOOR_OPEN
 	    				;도어락 상태 표시
 	INC LCOL
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0CH		;D
 	CALL    DISFONT
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0DH		;C
 	CALL    DISFONT
@@ -353,11 +353,11 @@ CLOCK_RUN_MODE:
 	
 	DOOR_OPEN:
 		INC LCOL
-		INC	    LCOL
+		INC	LCOL
 		CALL    CUR_MOV
 		MOV     DISNUM,#0CH		;D
 		CALL    DISFONT
-		INC	    LCOL
+		INC	LCOL
 		CALL    CUR_MOV
 		MOV     DISNUM,#0FH		;O
 		CALL    DISFONT
@@ -374,40 +374,40 @@ DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
  	    
 	;연 정보
 	MOV 	A,YEARINFO
-	MOV		B,#10
-	DIV		AB
-	MOV		NUM1,A
-	MOV		NUM2,B
-	MOV		DISNUM,NUM1	;연 정보 십자리
+	MOV	B,#10
+	DIV	AB
+	MOV	NUM1,A
+	MOV	NUM2,B
+	MOV	DISNUM,NUM1	;연 정보 십자리
 	CALL    DISFONT
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,NUM2		;연정보 일자리
 	CALL    DISFONT
 	    
 	;빼기 문자
-	INC	    LCOL
+	INC	   LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0BH
 	CALL    DISFONT
 	    
 	    ;월 정보
-	MOV     	LCOL,#09H
-	CALL    	CUR_MOV
+	MOV     LCOL,#09H
+	CALL    CUR_MOV
 	MOV 	A,MONTHINFO
-	MOV		B,#10
-	DIV		AB
-	MOV		NUM1,A
-	MOV		NUM2,B
-	MOV		DISNUM,NUM1	;연 정보 십자리
+	MOV	B,#10
+	DIV	AB
+	MOV	NUM1,A
+	MOV	NUM2,B
+	MOV	DISNUM,NUM1	;연 정보 십자리
 	CALL   	DISFONT
-	INC	   	LCOL
+	INC	LCOL
 	CALL   	CUR_MOV
-	MOV     	DISNUM,NUM2		;연정보 일자리
+	MOV     DISNUM,NUM2		;연정보 일자리
 	CALL	DISFONT
 	    
 	    ;빼기 문자
-	INC	    LCOL
+	INC	LCOL
 	CALL    CUR_MOV
 	MOV     DISNUM,#0BH
 	CALL    DISFONT
@@ -422,9 +422,9 @@ DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
 	MOV	NUM2,B
 	MOV	DISNUM,NUM1	;일 정보 십자리
 	CALL   	DISFONT
-	INC	   LCOL
+	INC	LCOL
 	CALL   	CUR_MOV
-	MOV     	DISNUM,NUM2	;일 정보 일자리
+	MOV     DISNUM,NUM2	;일 정보 일자리
 	CALL	DISFONT
 	    
 	; 모드 표시하기
@@ -626,10 +626,64 @@ DIS_SECOND_LIN:
 
 
 DOOR_CLOSE_MODE:
-	JMP LCD_ROUTINE_END
+	;첫번째 행 시간 정보 글자 뿌리기
+	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+	MOV     LCOL,#05H ; 글자 시작 위치(열)
+            
+	MOV     INST,#ENTRY2
+	CALL    INSTWR 
+	CALL    CUR_MOV
+	MOV     DPTR,#LOCK_MESSAGES
+
+	MOV     FDPL,DPL
+	MOV     FDPH,DPH
+	
+	MOV     DISNUM,#00H
+	MOV 	NUMFONT, #0AH
+	CALL    DISSTRING
+	
+	PUSH DPH
+	PUSH DPL
+	PUSH A
+	PUSH B
+	PUSH 01H
+	PUSH 02H
+	PUSH 03H
+	PUSH 04H
+	PUSH 05H
+	PUSH 06H
+	PUSH 07H
+	JMP	SCANN
 
 DOOR_OPEN_MODE:
-	JMP LCD_ROUTINE_END
+	;첫번째 행 시간 정보 글자 뿌리기
+	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+	MOV     LCOL,#01H ; 글자 시작 위치(열)
+            
+	MOV     INST,#ENTRY2
+	CALL    INSTWR 
+	CALL    CUR_MOV
+	MOV     DPTR,#OPEN_MESSAGES
+
+	MOV     FDPL,DPL
+	MOV     FDPH,DPH
+	
+	MOV     DISNUM,#00H
+	MOV 	NUMFONT, #12H
+	CALL    DISSTRING
+	
+	PUSH DPH
+	PUSH DPL
+	PUSH A
+	PUSH B
+	PUSH 01H
+	PUSH 02H
+	PUSH 03H
+	PUSH 04H
+	PUSH 05H
+	PUSH 06H
+	PUSH 07H
+	JMP	SCANN
 
 
 LCD_ROUTINE_END:
@@ -797,9 +851,20 @@ CLOCKS: DB '0','1','2','3','4'
 	 DB ':','-','D','C', 'O'
 	 DB 'R','M'
 
-DOOR_CLOSE: DB 'D','C'
-RUNNING: DB 'R'
-MODI: DB 'M'
+LOCK_MESSAGES:
+	DB 'E','n','t','e','r'
+	DB ' ','P','W','!','!'
+	DB 'R','E','-','E','n'
+	DB 't','e','r',' ','P'
+	DB 'W','!','!'
+
+OPEN_MESSAGES:
+	DB 'D','o','o','r',' '
+	DB 'L','o','c','k',' '
+	DB 'E','n','t','e','r'
+	DB ' ','P','W'
+	
+
 
 ;*****************************************************************
 ;*         서브 루틴 : SUBKEY                                    *
@@ -822,25 +887,37 @@ SUBKEY:    NOP
 ;*              출력 : ACC                                       *
 ;*              기능 : 키 코드값을 7_SEGMENT 로 표시             *
 ;*****************************************************************
-DISPLAY:   MOV      DPTR,#DLED
-           MOVX     @DPTR,A
+DISPLAY:   
+	MOV      DPTR,#DLED
+	MOVX     @DPTR,A
 	   
-	   MOV	KEYBOARD_INPUT, A ; 입력값 백업
+	MOV	KEYBOARD_INPUT, A ; 입력값 백업
 	
-	   MOV	A, MODE_STATUS
-	   CJNE	A, #00H, NOT_RUN_MODE	;런닝모드
-	   MOV	A, KEYBOARD_INPUT	
-	   CJNE	A, #0BH, INTERRUPT_END
-	   MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
-	   JMP	INTERRUPT_END
+	MOV	A, MODE_STATUS
+	CJNE	A, #00H, NOT_RUN_MODE	
+	MOV	A, KEYBOARD_INPUT	;런닝모드 시 처리	
+	CJNE	A, #0BH, NOT_BTN_B
+	MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
+	
+	NOT_BTN_B:
+		CJNE	A, #0AH, NOT_BTN_AB
+		MOV	MODE_STATUS, #10H	; A버튼이 눌린 경우 도어락 잠금모드로 전환
+		JMP	INTERRUPT_END
+	NOT_BTN_AB:
+		JMP	INTERRUPT_END
+
 
 NOT_RUN_MODE:				
-	CJNE A, #01H, NOT_MODI_MODE	;수정모드
-	MOV	A, KEYBOARD_INPUT	
+	CJNE A, #01H, NOT_MODI_MODE	
+	MOV	A, KEYBOARD_INPUT	;수정모드
 	CJNE	A, #0BH, NOT_B
 	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
 	
 	NOT_B:
+		CJNE	A, #0AH, NOT_A
+		MOV MODE_STATUS, #10H	;A버튼이 눌렸을 시 도어락 잠금모드로 변경
+		JMP	INTERRUPT_END
+	NOT_A:
 		CJNE	A, #0CH, NOT_C
 		INC	STATICHOURINFO
 		JMP	INTERRUPT_END
@@ -870,9 +947,35 @@ NOT_RUN_MODE:
 
 NOT_MODI_MODE:
 	CJNE A, #10H, NOT_CLOSE_MODE
+	MOV	A, KEYBOARD_INPUT	;도어락 잠금모드
+	CJNE	A, #0BH, NOT_B_C
+	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+	JMP	INTERRUPT_END
+	
+	NOT_B_C:
+		CJNE	A, #0AH, NOT_A_C
+		MOV	MODE_STATUS, #11H
+		JMP	INTERRUPT_END
+
+	NOT_A_C:
+		JMP	INTERRUPT_END
+		
+		
 
 NOT_CLOSE_MODE:
 	CJNE A, #11H, INTERRUPT_END
+	MOV	A, KEYBOARD_INPUT
+	CJNE	A, #0BH, NOT_B_L
+	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+	JMP	INTERRUPT_END
+	
+	NOT_B_L:
+		CJNE	A, #0AH, NOT_A_L
+		MOV	MODE_STATUS, #10H
+		JMP	INTERRUPT_END
+
+	NOT_A_L:
+		JMP	INTERRUPT_END
 	
 	   
 
