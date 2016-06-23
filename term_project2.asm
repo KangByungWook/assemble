@@ -734,22 +734,49 @@ SUBKEY:    NOP
 ;*****************************************************************
 DISPLAY:   MOV      DPTR,#DLED
            MOVX     @DPTR,A
-	   ;입력값 백업
-	   MOV	KEYBOARD_INPUT, A
-	   ;모드 변경 처리
-	   CJNE		A, #0BH, INTERRUPT_END
-	   MOV 	A, MODE_STATUS
-	   CJNE A, #00H, CHANGE_TO_RUN
-	   MOV MODE_STATUS, #01H
-	   JMP INTERRUPT_END
-	   	   
-	CHANGE_TO_RUN:
-		MOV MODE_STATUS, #00H
-	        JMP INTERRUPT_END
+	   
+	   MOV	KEYBOARD_INPUT, A ; 입력값 백업
+	
+	   MOV	A, MODE_STATUS
+	   CJNE	A, #00H, NOT_RUN_MODE	;런닝모드
+	   MOV	A, KEYBOARD_INPUT	
+	   CJNE	A, #0BH, INTERRUPT_END
+	   MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
+	   JMP	INTERRUPT_END
+
+NOT_RUN_MODE:				
+	CJNE A, #01H, NOT_MODI_MODE	;수정모드
+	MOV	A, KEYBOARD_INPUT	
+	CJNE	A, #0BH, NOT_B
+	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+	
+	NOT_B:
+		CJNE	A, #0CH, NOT_C
+		INC	STATICHOURINFO
+		JMP	INTERRUPT_END
+	NOT_C:
+		CJNE	A, #0DH, NOT_D
+		INC	STATICMININFO
+		JMP	INTERRUPT_END
+	NOT_D:
+		CJNE	A, #0EH, NOT_E
+		INC	STATICSECINFO
+		JMP	INTERRUPT_END
+	NOT_E:
+		JMP	INTERRUPT_END
+
+NOT_MODI_MODE:
+	CJNE A, #10H, NOT_CLOSE_MODE
+
+NOT_CLOSE_MODE:
+	CJNE A, #11H, INTERRUPT_END
+	
+	   
 
 	
 	INTERRUPT_END:
            RET
+
 
 ;*****************************************************************
 ;*         서브 루틴 : INDEX                                     *

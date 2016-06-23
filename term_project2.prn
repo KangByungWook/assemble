@@ -616,7 +616,7 @@
  83A3 75F005            MOV      B,#05H        ; 1행은 5열로 이루어짐
  83A6 A4        	MUL      AB            ; 2차원 배열을 1차원 배열로 값을 바꿈
  83A7 29        	ADD      A,R1          ; R1 에는 열의 값 보존
- 83A8 128433    	CALL     INDEX         ; 키 코드 값을 지정
+ 83A8 12845B    	CALL     INDEX         ; 키 코드 값을 지정
  83AB 128418    	CALL     DISPLAY       ; 키 코드 값의 표시 
  83AE           	;POP      PSW           ; 스택으로 부터 PSW값을 가지고 옴
                 	
@@ -734,30 +734,57 @@
  8418           ;*****************************************************************
  8418 90FFC1    DISPLAY:   MOV      DPTR,#DLED
  841B F0                   MOVX     @DPTR,A
- 841C           	   ;입력값 백업
- 841C F536      	   MOV	KEYBOARD_INPUT, A
- 841E           	   ;모드 변경 처리
- 841E B40B11    	   CJNE		A, #0BH, INTERRUPT_END
- 8421 E532      	   MOV 	A, MODE_STATUS
- 8423 B40006    	   CJNE A, #00H, CHANGE_TO_RUN
- 8426 753201    	   MOV MODE_STATUS, #01H
- 8429 028432    	   JMP INTERRUPT_END
-                	   	   
- 842C           	CHANGE_TO_RUN:
- 842C 753200    		MOV MODE_STATUS, #00H
- 842F 028432    	        JMP INTERRUPT_END
+                	   
+ 841C F536      	   MOV	KEYBOARD_INPUT, A ; 입력값 백업
+                	
+ 841E E532      	   MOV	A, MODE_STATUS
+ 8420 B4000B    	   CJNE	A, #00H, NOT_RUN_MODE	;런닝모드
+ 8423 E536      	   MOV	A, KEYBOARD_INPUT	
+ 8425 B40B32    	   CJNE	A, #0BH, INTERRUPT_END
+ 8428 753201    	   MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
+ 842B 02845A    	   JMP	INTERRUPT_END
+                
+ 842E           NOT_RUN_MODE:				
+ 842E B40123    	CJNE A, #01H, NOT_MODI_MODE	;수정모드
+ 8431 E536      	MOV	A, KEYBOARD_INPUT	
+ 8433 B40B03    	CJNE	A, #0BH, NOT_B
+ 8436 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+                	
+ 8439           	NOT_B:
+ 8439 B40C05    		CJNE	A, #0CH, NOT_C
+ 843C 0533      		INC	STATICHOURINFO
+ 843E 02845A    		JMP	INTERRUPT_END
+ 8441           	NOT_C:
+ 8441 B40D05    		CJNE	A, #0DH, NOT_D
+ 8444 0534      		INC	STATICMININFO
+ 8446 02845A    		JMP	INTERRUPT_END
+ 8449           	NOT_D:
+ 8449 B40E05    		CJNE	A, #0EH, NOT_E
+ 844C 0535      		INC	STATICSECINFO
+ 844E 02845A    		JMP	INTERRUPT_END
+ 8451           	NOT_E:
+ 8451 02845A    		JMP	INTERRUPT_END
+                
+ 8454           NOT_MODI_MODE:
+ 8454 B41000    	CJNE A, #10H, NOT_CLOSE_MODE
+                
+ 8457           NOT_CLOSE_MODE:
+ 8457 B41100    	CJNE A, #11H, INTERRUPT_END
+                	
+                	   
                 
                 	
- 8432           	INTERRUPT_END:
- 8432 22                   RET
+ 845A           	INTERRUPT_END:
+ 845A 22                   RET
                 
- 8433           ;*****************************************************************
- 8433           ;*         서브 루틴 : INDEX                                     *
- 8433           ;*              입력 : ACC                                       *
- 8433           ;*              출력 : ACC                                       *
- 8433           ;*              기능 : 키 코드값을 정의                          * 
- 8433           ;*****************************************************************
- 8433           ;DEFINE  FUNCTION KEY
+                
+ 845B           ;*****************************************************************
+ 845B           ;*         서브 루틴 : INDEX                                     *
+ 845B           ;*              입력 : ACC                                       *
+ 845B           ;*              출력 : ACC                                       *
+ 845B           ;*              기능 : 키 코드값을 정의                          * 
+ 845B           ;*****************************************************************
+ 845B           ;DEFINE  FUNCTION KEY
                 
  0010           RWKEY      EQU     10H ;READ AND WRITE KEY
  0011           INCKEY     EQU     11H ;INCRESE KEY(COMMA ,)
@@ -769,38 +796,38 @@
  0017           ST         EQU     17H ;SINGLE STEP KEY
  0018           RST        EQU     18H ;RST KEY
                 
- 8433 83        INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
- 8434 22                   RET
+ 845B 83        INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
+ 845C 22                   RET
                 
- 8435 17        KEYBASE:   DB ST            ;SW1,ST                  1
- 8436 16                   DB CODE          ;SW6,CODE                2
- 8437 15                   DB DECKEY        ;SW11,CD                 3
- 8438 14                   DB REG           ;SW15,REG                4
- 8439 13                   DB GO            ;SW19,GO                 5
- 843A 0C                   DB 0CH           ;SW2,C                   6
- 843B 0D                   DB 0DH           ;SW7,D                   7
- 843C 0E                   DB 0EH           ;SW12,E                  8
- 843D 0F                   DB 0FH           ;SW16,F                  9
- 843E 11                   DB INCKEY        ;SW20,COMMA (,)         10
- 843F 08                   DB 08H           ;SW3,8                  11
- 8440 09                   DB 09H           ;SW8,9                  12
- 8441 0A                   DB 0AH           ;SW13,A                 13
- 8442 0B                   DB 0BH           ;SW17,B                 14
- 8443 12                   DB ENDKEY        ;SW21,PERIOD(.)         15
- 8444 04                   DB 04H           ;SW4,4                  16
- 8445 05                   DB 05H           ;SW9,5                  17
- 8446 06                   DB 06H           ;SW14,6                 18
- 8447 07                   DB 07H           ;SW18,7                 19
- 8448 10                   DB RWKEY         ;SW22,R/W               20
- 8449 00                   DB 00H           ;SW5,0                  21
- 844A 01                   DB 01H           ;SW10,1                 22
- 844B 02                   DB 02H           ;SW24,2                 23
- 844C 03                   DB 03H           ;SW23,3                 24
- 844D                     ;DB RST           ;SW24  RST KEY          25
+ 845D 17        KEYBASE:   DB ST            ;SW1,ST                  1
+ 845E 16                   DB CODE          ;SW6,CODE                2
+ 845F 15                   DB DECKEY        ;SW11,CD                 3
+ 8460 14                   DB REG           ;SW15,REG                4
+ 8461 13                   DB GO            ;SW19,GO                 5
+ 8462 0C                   DB 0CH           ;SW2,C                   6
+ 8463 0D                   DB 0DH           ;SW7,D                   7
+ 8464 0E                   DB 0EH           ;SW12,E                  8
+ 8465 0F                   DB 0FH           ;SW16,F                  9
+ 8466 11                   DB INCKEY        ;SW20,COMMA (,)         10
+ 8467 08                   DB 08H           ;SW3,8                  11
+ 8468 09                   DB 09H           ;SW8,9                  12
+ 8469 0A                   DB 0AH           ;SW13,A                 13
+ 846A 0B                   DB 0BH           ;SW17,B                 14
+ 846B 12                   DB ENDKEY        ;SW21,PERIOD(.)         15
+ 846C 04                   DB 04H           ;SW4,4                  16
+ 846D 05                   DB 05H           ;SW9,5                  17
+ 846E 06                   DB 06H           ;SW14,6                 18
+ 846F 07                   DB 07H           ;SW18,7                 19
+ 8470 10                   DB RWKEY         ;SW22,R/W               20
+ 8471 00                   DB 00H           ;SW5,0                  21
+ 8472 01                   DB 01H           ;SW10,1                 22
+ 8473 02                   DB 02H           ;SW24,2                 23
+ 8474 03                   DB 03H           ;SW23,3                 24
+ 8475                     ;DB RST           ;SW24  RST KEY          25
                 
                 
- 844D                               ;
- 844D                               END
+ 8475                               ;
+ 8475                               END
 
 
  PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
