@@ -6,6 +6,14 @@ LCDWDR      EQU     0FFE1H  ; LCD DR 쓰기
 LCDRIR      EQU     0FFE2H  ; LCD IR 읽기
 LCDRDR      EQU     0FFE3H  ; LCD DR 읽기
 
+;키패드
+DATAOUT   EQU      0FFF0H  ;데이터 아웃의 주소
+DATAIN    EQU      0FFF1H  ;데이터 인의 주소
+DLED      EQU      0FFC1H  ;오른쪽 2개의 7_SEGMENT 주소
+ALED0     EQU      0FFC2H  ;중간 2개의 7_SEGMENT 주소
+ALED1     EQU      0FFC3H  ;왼쪽 2개의 7_SEGMENT 주소
+BUZZER    EQU      0FFEFH
+
 ;DEFINE VARIABLE
 ;********************************************************************
 ;LCD 관련 변수
@@ -25,6 +33,7 @@ INFO3    EQU     2CH    ; 초 정보 임시 저장공간
 YEARINFO EQU     2FH    ; 연도 값 보관
 MONTHINFO EQU    30H    ; 월 값 보관
 DAYINFO   EQU    31H    ; 일 값 보관
+MODE_STATUS	EQU	32H; 런닝모드(00H), 수정모드(01H), 잠금모드(10H), 해제모드(11H)
 
 ;DEFINE LCD INSTRUCTION 
 ;*********************************************************************
@@ -54,7 +63,7 @@ LINE_2      EQU     0C0H   ;1 010 0000 : LCD 2 번째 줄로 이동
 
 
           ORG     8000H  
-	
+	MOV	MODE_STATUS, #00H
 ;PROGRAMED BY  KIM HYUNG SOO
 LEDHOU    EQU     0FFC3H    ; 시(Hour) 표시 주소
 LEDMIN    EQU     0FFC2H    ; 분(Min)  표시 주소
@@ -148,28 +157,44 @@ DISMIN:   MOV     DPTR,#LEDMIN    ; 분 표시 루틴
 
 DISSEC:   MOV     DPTR,#LEDSEC    ; 초 정보가 업데이트 될 때 LCD도 업데이트
           MOVX    @DPTR,A
-	  CALL LCD_DISPLAY
+	  CALL DISPLAY_LCD
+	  
+
+
+
 
           RET   
 
-LCD_DISPLAY:
+DISPLAY_LCD:
    	  PUSH DPH
 	  PUSH DPL
 	  PUSH A
+	  PUSH B
+	  PUSH 01H
+	  PUSH 02H
+	  PUSH 03H
+	  PUSH 04H
 	  PUSH 05H
 	  PUSH 06H
 	  PUSH 07H
 	  
 	  CALL LCD_INIT
 	  
+	  
 	  POP 07H
 	  POP 06H
-	  POP 05H
-	  POP A
+	 POP 05H
+	 POP 04H
+	 POP 03H
+	 POP 02H
+	 POP 01H
+	 POP B
+	 POP A
 	  POP DPL
 	  POP DPH
 	  
    	  RET
+
 
 ;LCD 초기화 수행                                
 LCD_INIT:   
@@ -195,12 +220,40 @@ LCD_MESG:
 	MOV	INFO2, R6
 	MOV	INFO3, R5
 	
+	; 모드값에 따라서 LCD에 다르게 표시  
+	MOV	A, MODE_STATUS
+	CJNE	A, #00H, CLOCK_RUN_PASS
+	JMP	CLOCK_RUN_MODE
+	  
+CLOCK_RUN_PASS:
+	CJNE	A, #01H, CLOCK_MODI_PASS
+	JMP	CLOCK_MODI_MODE
+
+CLOCK_MODI_PASS:
+	CJNE	A, #10H, DOOR_CLOSE_PASS
+	JMP	DOOR_CLOSE_MODE
+
+DOOR_CLOSE_PASS:
+	CJNE	A, #11H, DOOR_OPEN_PASS
+	JMP	DOOR_OPEN_MODE
+
+DOOR_OPEN_PASS:
+	NOP
+	
+	
+	  
+
+	
+
+	
+CLOCK_RUN_MODE:
 	;첫번째 행 시간 정보 글자 뿌리기
 	    MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
             MOV     LCOL,#06H ; 글자 시작 위치(열)
-            CALL    CUR_MOV
+            
             MOV     INST,#ENTRY2
             CALL    INSTWR 
+  	    CALL    CUR_MOV
  	    MOV     DPTR,#CLOCKS
 
 	    MOV     FDPL,DPL
@@ -326,9 +379,95 @@ LCD_MESG:
 	    INC	   	LCOL
 	    CALL   	CUR_MOV
 	    MOV     	DISNUM,NUM2	;일 정보 일자리
+	    ;TODO: 키보드 인터럽트 처리하기
 	    CALL	DISFONT
+	PUSH DPH
+	PUSH DPL
+	PUSH A
+	PUSH B
+	PUSH 01H
+	PUSH 02H
+	PUSH 03H
+	PUSH 04H
+	PUSH 05H
+	PUSH 06H
+	PUSH 07H
+	JMP	SCANN
+ESCAPE:
+	POP 07H
+	POP 06H
+	POP 05H
+	POP 04H
+	POP 03H
+	POP 02H
+	POP 01H
+	POP B
+	POP A
+	POP DPL
+	POP DPH
+	JMP LCD_ROUTINE_END	
+
+CLOCK_MODI_MODE:
+	  JMP LCD_ROUTINE_END
+
+
+DOOR_CLOSE_MODE:
+	  JMP LCD_ROUTINE_END
+
+DOOR_OPEN_MODE:
+	  JMP LCD_ROUTINE_END
+
+
+LCD_ROUTINE_END:
+	NOP
+
             RET
 
+
+
+
+;키 패드 인터페이스 예제
+
+SCANN:     	    		
+	PUSH     PSW     ; PSW 값을 스택에 보관
+	SETB     PSW.4   ; 뱅크3 레지스터 사용
+	SETB     PSW.3
+
+INITIAL:   MOV      R1,#00H       ; R1의 초기화
+           MOV      A,#11101111B  ; 데이터 아웃의 초기값
+
+COLSCAN:   MOV      R0,A          ; R0에 데이터 아웃 값 보관 
+           INC      R1            ; R1 열의 값 보관 
+	   CALL     SUBKEY        ; 키 패드 입력 상태 조사
+           ANL      A,#00011111B  ; 상위 3비트 제거
+           XRL      A,#00011111B  ; XRL 연산000111111
+           JNZ      RSCAN         ; 누산기 값이 0 이 아니면, 행 스캔
+           MOV      A,R0           
+           SETB     C
+           RRC      A             ; 다음 열로 이동
+           JNC	KEY_RET       ; 모든 열을 스캔했으면, 다시 시작 
+           JMP      COLSCAN       ; 다음 열의 스캔을 위한 분기
+
+
+RSCAN:     MOV      R2,#00H       ; R2 행의 값 보관
+ROWSCAN:   RRC      A             ; 어느 행이 "1" 로 바뀌었는지 조사
+           JC       MATRIX        ; 캐리가 발생하면, MATRIX로 분기
+           INC      R2            ; 캐리가 발생하지 않으면, 다음 행으로 이동
+           JMP      ROWSCAN       ; 다음 행의 스캔을 위한 분기
+
+MATRIX:    
+	MOV      A,R2          ; R2 에는 행의 값 보존
+        MOV      B,#05H        ; 1행은 5열로 이루어짐
+	MUL      AB            ; 2차원 배열을 1차원 배열로 값을 바꿈
+	ADD      A,R1          ; R1 에는 열의 값 보존
+	CALL     INDEX         ; 키 코드 값을 지정
+	CALL     DISPLAY       ; 키 코드 값의 표시 
+	;POP      PSW           ; 스택으로 부터 PSW값을 가지고 옴
+	
+	JMP	KEY_RET                   ; 상위 루틴으로 복귀
+KEY_RET:
+	POP	PSW
+	JMP	ESCAPE
 
 ;*************************************************************
 ;*           서브 루틴: DISFONT                              *
@@ -413,5 +552,83 @@ INSTRD:     MOV      DPTR,#LCDRIR
 CLOCKS: DB '0','1','2','3','4'
 	 DB '5','6','7','8','9'
 	 DB ':','-'          
+
+
+
+;*****************************************************************
+;*         서브 루틴 : SUBKEY                                    *
+;*              입력 : ACC                                       *
+;*              출력 : ACC                                       *
+;*              기능 : 데이터 아웃으로 데이터를 내보내고         *
+;*                     데이터 인으로 결과를 확인                 * 
+;*****************************************************************
+SUBKEY:    NOP
+	   MOV	    R0, A
+	   MOV      DPTR,#DATAOUT
+           MOVX     @DPTR,A
+           MOV      DPTR,#DATAIN
+           MOVX     A,@DPTR
+           RET
+
+;*****************************************************************
+;*         서브 루틴 : DISPLAY                                   *
+;*              입력 : ACC                                       *
+;*              출력 : ACC                                       *
+;*              기능 : 키 코드값을 7_SEGMENT 로 표시             *
+;*****************************************************************
+DISPLAY:   MOV      DPTR,#DLED
+           MOVX     @DPTR,A
+           RET
+
+;*****************************************************************
+;*         서브 루틴 : INDEX                                     *
+;*              입력 : ACC                                       *
+;*              출력 : ACC                                       *
+;*              기능 : 키 코드값을 정의                          * 
+;*****************************************************************
+;DEFINE  FUNCTION KEY
+
+RWKEY      EQU     10H ;READ AND WRITE KEY
+INCKEY     EQU     11H ;INCRESE KEY(COMMA ,)
+ENDKEY     EQU     12H ;END KEY (PERIOD . )
+GO         EQU     13H ;GO-KEY
+REG        EQU     14H ;REGISTER KEY
+DECKEY     EQU     15H ;DECRESE KEY
+CODE       EQU     16H ;CODE KEY
+ST         EQU     17H ;SINGLE STEP KEY
+RST        EQU     18H ;RST KEY
+
+INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
+           RET
+
+KEYBASE:   DB ST            ;SW1,ST                  1
+           DB CODE          ;SW6,CODE                2
+           DB DECKEY        ;SW11,CD                 3
+           DB REG           ;SW15,REG                4
+           DB GO            ;SW19,GO                 5
+           DB 0CH           ;SW2,C                   6
+           DB 0DH           ;SW7,D                   7
+           DB 0EH           ;SW12,E                  8
+           DB 0FH           ;SW16,F                  9
+           DB INCKEY        ;SW20,COMMA (,)         10
+           DB 08H           ;SW3,8                  11
+           DB 09H           ;SW8,9                  12
+           DB 0AH           ;SW13,A                 13
+           DB 0BH           ;SW17,B                 14
+           DB ENDKEY        ;SW21,PERIOD(.)         15
+           DB 04H           ;SW4,4                  16
+           DB 05H           ;SW9,5                  17
+           DB 06H           ;SW14,6                 18
+           DB 07H           ;SW18,7                 19
+           DB RWKEY         ;SW22,R/W               20
+           DB 00H           ;SW5,0                  21
+           DB 01H           ;SW10,1                 22
+           DB 02H           ;SW24,2                 23
+           DB 03H           ;SW23,3                 24
+          ;DB RST           ;SW24  RST KEY          25
+
+
+                    ;
+                    END
       
 END
