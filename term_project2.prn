@@ -374,66 +374,65 @@
                  	    
  81DB           	;연 정보
  81DB E52F      	MOV 	A,YEARINFO
- 81DD 75F00A    	    MOV		B,#10
- 81E0 84        	    DIV		AB
- 81E1 F528      	    MOV		NUM1,A
- 81E3 85F029    	    MOV		NUM2,B
- 81E6 852827    	    MOV		DISNUM,NUM1	;연 정보 십자리
- 81E9 128439                CALL    DISFONT
- 81EC 0523      	    INC	    LCOL
- 81EE 128460    	    CALL    CUR_MOV
- 81F1 852927    	    MOV     DISNUM,NUM2		;연정보 일자리
- 81F4 128439    	    CALL    DISFONT
+ 81DD 75F00A    	MOV		B,#10
+ 81E0 84        	DIV		AB
+ 81E1 F528      	MOV		NUM1,A
+ 81E3 85F029    	MOV		NUM2,B
+ 81E6 852827    	MOV		DISNUM,NUM1	;연 정보 십자리
+ 81E9 128439    	CALL    DISFONT
+ 81EC 0523      	INC	    LCOL
+ 81EE 128460    	CALL    CUR_MOV
+ 81F1 852927    	MOV     DISNUM,NUM2		;연정보 일자리
+ 81F4 128439    	CALL    DISFONT
                 	    
- 81F7           	    ;빼기 문자
- 81F7 0523      	    INC	    LCOL
- 81F9 128460    	    CALL    CUR_MOV
- 81FC 75270B    	    MOV     DISNUM,#0BH
- 81FF 128439    	    CALL    DISFONT
+ 81F7           	;빼기 문자
+ 81F7 0523      	INC	    LCOL
+ 81F9 128460    	CALL    CUR_MOV
+ 81FC 75270B    	MOV     DISNUM,#0BH
+ 81FF 128439    	CALL    DISFONT
                 	    
  8202           	    ;월 정보
- 8202 752309    	    MOV     	LCOL,#09H
- 8205 128460    	    CALL    	CUR_MOV
- 8208 E530          	    MOV 	A,MONTHINFO
- 820A 75F00A    	    MOV		B,#10
- 820D 84        	    DIV		AB
- 820E F528      	    MOV		NUM1,A
- 8210 85F029    	    MOV		NUM2,B
- 8213 852827    	    MOV		DISNUM,NUM1	;연 정보 십자리
- 8216 128439                CALL   	DISFONT
- 8219 0523      	    INC	   	LCOL
- 821B 128460    	    CALL   	CUR_MOV
- 821E 852927    	    MOV     	DISNUM,NUM2		;연정보 일자리
- 8221 128439    	    CALL	DISFONT
+ 8202 752309    	MOV     	LCOL,#09H
+ 8205 128460    	CALL    	CUR_MOV
+ 8208 E530      	MOV 	A,MONTHINFO
+ 820A 75F00A    	MOV		B,#10
+ 820D 84        	DIV		AB
+ 820E F528      	MOV		NUM1,A
+ 8210 85F029    	MOV		NUM2,B
+ 8213 852827    	MOV		DISNUM,NUM1	;연 정보 십자리
+ 8216 128439    	CALL   	DISFONT
+ 8219 0523      	INC	   	LCOL
+ 821B 128460    	CALL   	CUR_MOV
+ 821E 852927    	MOV     	DISNUM,NUM2		;연정보 일자리
+ 8221 128439    	CALL	DISFONT
                 	    
  8224           	    ;빼기 문자
- 8224 0523      	    INC	    LCOL
- 8226 128460    	    CALL    CUR_MOV
- 8229 75270B    	    MOV     DISNUM,#0BH
- 822C 128439    	    CALL    DISFONT
+ 8224 0523      	INC	    LCOL
+ 8226 128460    	CALL    CUR_MOV
+ 8229 75270B    	MOV     DISNUM,#0BH
+ 822C 128439    	CALL    DISFONT
                 
  822F           	    ;일 정보
- 822F 75230C    	    MOV     	LCOL,#0CH
- 8232 128460    	    CALL    	CUR_MOV
- 8235 E531          	    MOV 	A,DAYINFO
- 8237 75F00A    	    MOV		B,#10
- 823A 84        	    DIV		AB
- 823B F528      	    MOV		NUM1,A
- 823D 85F029    	    MOV		NUM2,B
- 8240 852827    	    MOV		DISNUM,NUM1	;일 정보 십자리
- 8243 128439                CALL   	DISFONT
- 8246 0523      	    INC	   	LCOL
- 8248 128460    	    CALL   	CUR_MOV
- 824B 852927    	    MOV     	DISNUM,NUM2	;일 정보 일자리
- 824E           	    ;TODO: 키보드 인터럽트 처리하기
- 824E 128439    	    CALL	DISFONT
+ 822F 75230C    	MOV     LCOL,#0CH
+ 8232 128460    	CALL    CUR_MOV
+ 8235 E531      	MOV 	A,DAYINFO
+ 8237 75F00A    	MOV	B,#10
+ 823A 84        	DIV	AB
+ 823B F528      	MOV	NUM1,A
+ 823D 85F029    	MOV	NUM2,B
+ 8240 852827    	MOV	DISNUM,NUM1	;일 정보 십자리
+ 8243 128439    	CALL   	DISFONT
+ 8246 0523      	INC	   LCOL
+ 8248 128460    	CALL   	CUR_MOV
+ 824B 852927    	MOV     	DISNUM,NUM2	;일 정보 일자리
+ 824E 128439    	CALL	DISFONT
                 	    
- 8251           	    ; 모드 표시하기
- 8251 0523      	    INC LCOL
- 8253 0523      	    INC	   	LCOL
- 8255 128460    	    CALL   	CUR_MOV
- 8258 75270F    	    MOV     	DISNUM,#0FH	;일 정보 일자리
- 825B 128439    	    CALL	DISFONT
+ 8251           	; 모드 표시하기
+ 8251 0523      	INC LCOL
+ 8253 0523      	INC	   	LCOL
+ 8255 128460    	CALL   	CUR_MOV
+ 8258 75270F    	MOV     	DISNUM,#0FH	;일 정보 일자리
+ 825B 128439    	CALL	DISFONT
                 
  825E C083      	PUSH DPH
  8260 C082      	PUSH DPL

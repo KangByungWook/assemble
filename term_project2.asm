@@ -374,66 +374,65 @@ DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
  	    
 	;연 정보
 	MOV 	A,YEARINFO
-	    MOV		B,#10
-	    DIV		AB
-	    MOV		NUM1,A
-	    MOV		NUM2,B
-	    MOV		DISNUM,NUM1	;연 정보 십자리
-            CALL    DISFONT
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,NUM2		;연정보 일자리
-	    CALL    DISFONT
+	MOV		B,#10
+	DIV		AB
+	MOV		NUM1,A
+	MOV		NUM2,B
+	MOV		DISNUM,NUM1	;연 정보 십자리
+	CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,NUM2		;연정보 일자리
+	CALL    DISFONT
 	    
-	    ;빼기 문자
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0BH
-	    CALL    DISFONT
+	;빼기 문자
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0BH
+	CALL    DISFONT
 	    
 	    ;월 정보
-	    MOV     	LCOL,#09H
-	    CALL    	CUR_MOV
-    	    MOV 	A,MONTHINFO
-	    MOV		B,#10
-	    DIV		AB
-	    MOV		NUM1,A
-	    MOV		NUM2,B
-	    MOV		DISNUM,NUM1	;연 정보 십자리
-            CALL   	DISFONT
-	    INC	   	LCOL
-	    CALL   	CUR_MOV
-	    MOV     	DISNUM,NUM2		;연정보 일자리
-	    CALL	DISFONT
+	MOV     	LCOL,#09H
+	CALL    	CUR_MOV
+	MOV 	A,MONTHINFO
+	MOV		B,#10
+	DIV		AB
+	MOV		NUM1,A
+	MOV		NUM2,B
+	MOV		DISNUM,NUM1	;연 정보 십자리
+	CALL   	DISFONT
+	INC	   	LCOL
+	CALL   	CUR_MOV
+	MOV     	DISNUM,NUM2		;연정보 일자리
+	CALL	DISFONT
 	    
 	    ;빼기 문자
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0BH
-	    CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0BH
+	CALL    DISFONT
 
 	    ;일 정보
-	    MOV     	LCOL,#0CH
-	    CALL    	CUR_MOV
-    	    MOV 	A,DAYINFO
-	    MOV		B,#10
-	    DIV		AB
-	    MOV		NUM1,A
-	    MOV		NUM2,B
-	    MOV		DISNUM,NUM1	;일 정보 십자리
-            CALL   	DISFONT
-	    INC	   	LCOL
-	    CALL   	CUR_MOV
-	    MOV     	DISNUM,NUM2	;일 정보 일자리
-	    ;TODO: 키보드 인터럽트 처리하기
-	    CALL	DISFONT
+	MOV     LCOL,#0CH
+	CALL    CUR_MOV
+	MOV 	A,DAYINFO
+	MOV	B,#10
+	DIV	AB
+	MOV	NUM1,A
+	MOV	NUM2,B
+	MOV	DISNUM,NUM1	;일 정보 십자리
+	CALL   	DISFONT
+	INC	   LCOL
+	CALL   	CUR_MOV
+	MOV     	DISNUM,NUM2	;일 정보 일자리
+	CALL	DISFONT
 	    
-	    ; 모드 표시하기
-	    INC LCOL
-	    INC	   	LCOL
-	    CALL   	CUR_MOV
-	    MOV     	DISNUM,#0FH	;일 정보 일자리
-	    CALL	DISFONT
+	; 모드 표시하기
+	INC LCOL
+	INC	   	LCOL
+	CALL   	CUR_MOV
+	MOV     	DISNUM,#0FH	;일 정보 일자리
+	CALL	DISFONT
 
 	PUSH DPH
 	PUSH DPL
