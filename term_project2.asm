@@ -40,6 +40,11 @@ STATICSECINFO	EQU	35H ; 수정모드를 위한 고정 초값
 KEYBOARD_INPUT	EQU	36H ; 키보드 입력값 저장공간
 DOOR_STATUS	EQU	37H ; 문이 열려있는지 안열려있는지 상태
 CLOCK_MODIFIED	EQU	7000H	; 
+PW_INPUT_NUM	EQU	7001H
+PW1	EQU	7002H
+PW2	EQU	7003H
+PW3	EQU	7004H
+PW4	EQU	7005H
 
 ;DEFINE LCD INSTRUCTION 
 ;*********************************************************************
@@ -75,6 +80,7 @@ LINE_2      EQU     0C0H   ;1 010 0000 : LCD 2 번째 줄로 이동
 	MOV STATICMININFO, #00H
 	MOV STATICSECINFO, #00H
 	MOV DOOR_STATUS, #00H
+	MOV PW_INPUT_NUM, #01H
 	
 	
 	
@@ -653,6 +659,19 @@ DOOR_CLOSE_MODE:
 	MOV 	NUMFONT, #0AH
 	CALL    DISSTRING
 	
+	;두번째 행 시간 정보 글자 뿌리기
+	MOV     LROW,#02H ; 글자 시작 위치(행)
+	MOV     LCOL,#07H ; 글자 시작 위치(열)
+	CALL    CUR_MOV
+	MOV     DPTR,#STARS
+	MOV     FDPL,DPL
+	MOV     FDPH,DPH
+	
+	MOV     DISNUM,#00H
+	MOV	A, #04H
+	MOV 	NUMFONT, A
+	CALL    DISSTRING
+	
 	PUSH DPH
 	PUSH DPL
 	PUSH A
@@ -874,7 +893,9 @@ OPEN_MESSAGES:
 	DB 'L','o','c','k',' '
 	DB 'E','n','t','e','r'
 	DB ' ','P','W'
-	
+
+STARS:
+	DB '*','*','*','*'
 
 
 ;*****************************************************************
@@ -969,8 +990,33 @@ NOT_MODI_MODE:
 		JMP	INTERRUPT_END
 
 	NOT_A_C:
+		INC PW_INPUT_NUM
+		MOV	A, PW_INPUT_NUM
+		CJNE	A, #01H, PW_NOT_ONE
+		MOV	A, KEYBOARD_INPUT
+		MOV	PW1, A 
 		JMP	INTERRUPT_END
-		
+	PW_NOT_ONE:
+		MOV	A, PW_INPUT_NUM
+		CJNE	A, #02H, PW_NOT_TWO
+		MOV	A, KEYBOARD_INPUT
+		MOV	PW2, A
+		JMP	INTERRUPT_END
+	PW_NOT_TWO:
+	 	MOV	A, PW_INPUT_NUM
+		CJNE	A, #03H, PW_NOT_THREE
+		MOV	A, KEYBOARD_INPUT
+		MOV	PW3, A
+		JMP	INTERRUPT_END
+	PW_NOT_THREE:
+		MOV	A, PW_INPUT_NUM
+		CJNE	A, #04H, PW_ALL_INPUT
+		MOV	A, KEYBOARD_INPUT
+		MOV	PW4, A
+		JMP	INTERRUPT_END
+	PW_ALL_INPUT:
+		MOV	PW_INPUT_NUM, #00H
+		JMP	INTERRUPT_END
 		
 
 NOT_CLOSE_MODE:

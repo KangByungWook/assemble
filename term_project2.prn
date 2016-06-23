@@ -40,6 +40,11 @@
  0036           KEYBOARD_INPUT	EQU	36H ; 키보드 입력값 저장공간
  0037           DOOR_STATUS	EQU	37H ; 문이 열려있는지 안열려있는지 상태
  7000           CLOCK_MODIFIED	EQU	7000H	; 
+ 7001           PW_INPUT_NUM	EQU	7001H
+ 7002           PW1	EQU	7002H
+ 7003           PW2	EQU	7003H
+ 7004           PW3	EQU	7004H
+ 7005           PW4	EQU	7005H
                 
  FFFFFFFF           ;DEFINE LCD INSTRUCTION 
  FFFFFFFF           ;*********************************************************************
@@ -75,196 +80,197 @@
  8006 753400    	MOV STATICMININFO, #00H
  8009 753500    	MOV STATICSECINFO, #00H
  800C 753700    	MOV DOOR_STATUS, #00H
+ 800F 750101    	MOV PW_INPUT_NUM, #01H
                 	
                 	
                 	
                 
                 	
- 800F           ;PROGRAMED BY  KIM HYUNG SOO
+ 8012           ;PROGRAMED BY  KIM HYUNG SOO
  FFC3           LEDHOU    EQU     0FFC3H    ; 시(Hour) 표시 주소
  FFC2           LEDMIN    EQU     0FFC2H    ; 분(Min)  표시 주소
  FFC1           LEDSEC    EQU     0FFC1H    ; 초(Sec)  표시 주소
  00D9           ADJUST    EQU     000D9H    ; 시계 속도를 맞추기 위한 상수
                                 
- 800F 128069              LCALL   ALLCLEAR  ; 초기화
+ 8012 12806C              LCALL   ALLCLEAR  ; 초기화
                                 
- 8012 7A08      CLOCK:    MOV     R2,#0008H 
- 8014 79FF      DELAY3:   MOV     R1,#00FFH
- 8016 78E0      DELAY2:   MOV     R0,#00E0H
- 8018 D8FE      DELAY1:   DJNZ    R0,DELAY1
- 801A D9FA                DJNZ    R1,DELAY2
- 801C DAF6                DJNZ    R2,DELAY3
+ 8015 7A08      CLOCK:    MOV     R2,#0008H 
+ 8017 79FF      DELAY3:   MOV     R1,#00FFH
+ 8019 78E0      DELAY2:   MOV     R0,#00E0H
+ 801B D8FE      DELAY1:   DJNZ    R0,DELAY1
+ 801D D9FA                DJNZ    R1,DELAY2
+ 801F DAF6                DJNZ    R2,DELAY3
                 
- 801E           ;******************************************************
- 801E           ;*        920064 주기가 걸림                          *
- 801E           ;*        1초는 921600 주기가 필요 하다.              *
- 801E           ;*        따라서  1536 주기가 더 필요하다.            *
- 801E           ;******************************************************
+ 8021           ;******************************************************
+ 8021           ;*        920064 주기가 걸림                          *
+ 8021           ;*        1초는 921600 주기가 필요 하다.              *
+ 8021           ;*        따라서  1536 주기가 더 필요하다.            *
+ 8021           ;******************************************************
                                
- 801E ACD9                MOV     R4,ADJUST     
- 8020 7B02      ADJUST2:  MOV     R3,#0002H    
- 8022 DBFE      ADJUST1:  DJNZ    R3,ADJUST1   
- 8024 DCFA                DJNZ    R4,ADJUST2   
+ 8021 ACD9                MOV     R4,ADJUST     
+ 8023 7B02      ADJUST2:  MOV     R3,#0002H    
+ 8025 DBFE      ADJUST1:  DJNZ    R3,ADJUST1   
+ 8027 DCFA                DJNZ    R4,ADJUST2   
                 
- 8026           ;******************************************************
- 8026           ;*    ADJUST 루틴에서 걸린 주기                       * 
- 8026           ;*    2*VAR*2 + VAR*3 = 7*VAR CYCLE                   *
- 8026           ;*    VAR=215 , 따라서 1505 주기가 된다.              *
- 8026           ;*    나머지 31 주기는 1초를 표시하는 루틴에서        *
- 8026           ;******************************************************
- 8026 BD590C    CONDITON: CJNE    R5,#59H,SEC     ; 초 단위 비교 
+ 8029           ;******************************************************
+ 8029           ;*    ADJUST 루틴에서 걸린 주기                       * 
+ 8029           ;*    2*VAR*2 + VAR*3 = 7*VAR CYCLE                   *
+ 8029           ;*    VAR=215 , 따라서 1505 주기가 된다.              *
+ 8029           ;*    나머지 31 주기는 1초를 표시하는 루틴에서        *
+ 8029           ;******************************************************
+ 8029 BD590C    CONDITON: CJNE    R5,#59H,SEC     ; 초 단위 비교 
                                                        
- 8029 BE5914              CJNE    R6,#59H,MIN     ; 분 단위 비교
+ 802C BE5914              CJNE    R6,#59H,MIN     ; 분 단위 비교
                                                        
- 802C BF2324              CJNE    R7,#23H,HOUR    ; 시 단위 비교
+ 802F BF2324              CJNE    R7,#23H,HOUR    ; 시 단위 비교
                                                        
- 802F 128069              LCALL   ALLCLEAR        ; 23:59:59 -> 00:00:00
- 8032 028012              LJMP    CLOCK           ; CLOCK으로 분기
+ 8032 12806C              LCALL   ALLCLEAR        ; 23:59:59 -> 00:00:00
+ 8035 028015              LJMP    CLOCK           ; CLOCK으로 분기
                                           
- 8035 ED        SEC:      MOV     A,R5          
- 8036 2401                ADD     A,#1H           ; 초 단위 증가
- 8038 D4                  DA      A               ; 십진수 표현
- 8039 FD                  MOV     R5,A          
- 803A 128089              LCALL   DISSEC          ; 초 표시 루틴 호출
- 803D 028012              LJMP    CLOCK           ; CLOCK으로 분기
+ 8038 ED        SEC:      MOV     A,R5          
+ 8039 2401                ADD     A,#1H           ; 초 단위 증가
+ 803B D4                  DA      A               ; 십진수 표현
+ 803C FD                  MOV     R5,A          
+ 803D 12808C              LCALL   DISSEC          ; 초 표시 루틴 호출
+ 8040 028015              LJMP    CLOCK           ; CLOCK으로 분기
                                  
                                
- 8040 EE        MIN:      MOV     A,R6               
- 8041 2401                ADD     A,#1H           ; 분 단위 증가
- 8043 D4                  DA      A               ; 십진수 표현    
- 8044 FE                  MOV     R6,A
- 8045 12807C              LCALL   CLRSEC          
- 8048 128084              LCALL   DISMIN          ; 분 표시 루틴 호출
- 804B 7400                MOV     A,#00H       
- 804D 128089              LCALL   DISSEC          ; 초 00 표시 
- 8050 028012              LJMP    CLOCK           ; CLOCK으로 분기
+ 8043 EE        MIN:      MOV     A,R6               
+ 8044 2401                ADD     A,#1H           ; 분 단위 증가
+ 8046 D4                  DA      A               ; 십진수 표현    
+ 8047 FE                  MOV     R6,A
+ 8048 12807F              LCALL   CLRSEC          
+ 804B 128087              LCALL   DISMIN          ; 분 표시 루틴 호출
+ 804E 7400                MOV     A,#00H       
+ 8050 12808C              LCALL   DISSEC          ; 초 00 표시 
+ 8053 028015              LJMP    CLOCK           ; CLOCK으로 분기
                                  
                                 
- 8053 EF        HOUR:     MOV     A,R7
- 8054 2401                ADD     A,#1H           ; 시 단위 증가 
- 8056 D4                  DA      A               ; 십진수 표현
- 8057 FF                  MOV     R7,A
- 8058 12807A              LCALL   CLRMIN
- 805B 12807F              LCALL   DISHOU          ; 시 표시 루틴 호출       
- 805E 7400                MOV     A,#00H
- 8060 128084              LCALL   DISMIN 
- 8063 128089              LCALL   DISSEC
- 8066 028012              LJMP    CLOCK
+ 8056 EF        HOUR:     MOV     A,R7
+ 8057 2401                ADD     A,#1H           ; 시 단위 증가 
+ 8059 D4                  DA      A               ; 십진수 표현
+ 805A FF                  MOV     R7,A
+ 805B 12807D              LCALL   CLRMIN
+ 805E 128082              LCALL   DISHOU          ; 시 표시 루틴 호출       
+ 8061 7400                MOV     A,#00H
+ 8063 128087              LCALL   DISMIN 
+ 8066 12808C              LCALL   DISSEC
+ 8069 028015              LJMP    CLOCK
                       
- 8069 128078    ALLCLEAR: LCALL   CLRHOU          ; 표시 초기화 루틴
- 806C 7400                MOV     A,#00H         
- 806E 12807F              LCALL   DISHOU
- 8071 128084              LCALL   DISMIN
- 8074 128089              LCALL   DISSEC
- 8077 22                  RET
+ 806C 12807B    ALLCLEAR: LCALL   CLRHOU          ; 표시 초기화 루틴
+ 806F 7400                MOV     A,#00H         
+ 8071 128082              LCALL   DISHOU
+ 8074 128087              LCALL   DISMIN
+ 8077 12808C              LCALL   DISSEC
+ 807A 22                  RET
                                                 
- 8078 7F00      CLRHOU:   MOV     R7,#0H          ; 변수 초기화 루틴
- 807A 7E00      CLRMIN:   MOV     R6,#0H
- 807C 7D00      CLRSEC:   MOV     R5,#0H
- 807E 22                  RET
+ 807B 7F00      CLRHOU:   MOV     R7,#0H          ; 변수 초기화 루틴
+ 807D 7E00      CLRMIN:   MOV     R6,#0H
+ 807F 7D00      CLRSEC:   MOV     R5,#0H
+ 8081 22                  RET
                                                 
- 807F 90FFC3    DISHOU:   MOV     DPTR,#LEDHOU    ; 시 표시 루틴
- 8082 F0                  MOVX    @DPTR,A        
- 8083 22                  RET                    
+ 8082 90FFC3    DISHOU:   MOV     DPTR,#LEDHOU    ; 시 표시 루틴
+ 8085 F0                  MOVX    @DPTR,A        
+ 8086 22                  RET                    
                                                  
- 8084 90FFC2    DISMIN:   MOV     DPTR,#LEDMIN    ; 분 표시 루틴 
- 8087 F0                  MOVX    @DPTR,A
- 8088 22                  RET
+ 8087 90FFC2    DISMIN:   MOV     DPTR,#LEDMIN    ; 분 표시 루틴 
+ 808A F0                  MOVX    @DPTR,A
+ 808B 22                  RET
                 
- 8089 90FFC1    DISSEC:   MOV     DPTR,#LEDSEC    ; 초 정보가 업데이트 될 때 LCD도 업데이트
- 808C F0                  MOVX    @DPTR,A
- 808D 128091    	  CALL DISPLAY_LCD
+ 808C 90FFC1    DISSEC:   MOV     DPTR,#LEDSEC    ; 초 정보가 업데이트 될 때 LCD도 업데이트
+ 808F F0                  MOVX    @DPTR,A
+ 8090 128094    	  CALL DISPLAY_LCD
                 	  
                 
                 
                 
                 
- 8090 22                  RET   
+ 8093 22                  RET   
                 
- 8091           DISPLAY_LCD:
- 8091 C083      	PUSH DPH
- 8093 C082      	PUSH DPL
- 8095 C0E0      	PUSH A
- 8097 C0F0      	PUSH B
- 8099 C001      	PUSH 01H
- 809B C002      	PUSH 02H
- 809D C003      	PUSH 03H
- 809F C004      	PUSH 04H
- 80A1 C005      	PUSH 05H
- 80A3 C006      	PUSH 06H
- 80A5 C007      	PUSH 07H
+ 8094           DISPLAY_LCD:
+ 8094 C083      	PUSH DPH
+ 8096 C082      	PUSH DPL
+ 8098 C0E0      	PUSH A
+ 809A C0F0      	PUSH B
+ 809C C001      	PUSH 01H
+ 809E C002      	PUSH 02H
+ 80A0 C003      	PUSH 03H
+ 80A2 C004      	PUSH 04H
+ 80A4 C005      	PUSH 05H
+ 80A6 C006      	PUSH 06H
+ 80A8 C007      	PUSH 07H
                 	  
- 80A7 1280D0    	CALL LCD_INIT
+ 80AA 1280D3    	CALL LCD_INIT
                 	  
                 	  
- 80AA D007      	POP 07H
- 80AC D006      	POP 06H
- 80AE D005      	POP 05H
- 80B0 D004      	POP 04H
- 80B2 D003      	POP 03H
- 80B4 D002      	POP 02H
- 80B6 D001      	POP 01H
- 80B8 D0F0      	POP B
- 80BA D0E0      	POP A
- 80BC D082      	POP DPL
- 80BE D083      	POP DPH
+ 80AD D007      	POP 07H
+ 80AF D006      	POP 06H
+ 80B1 D005      	POP 05H
+ 80B3 D004      	POP 04H
+ 80B5 D003      	POP 03H
+ 80B7 D002      	POP 02H
+ 80B9 D001      	POP 01H
+ 80BB D0F0      	POP B
+ 80BD D0E0      	POP A
+ 80BF D082      	POP DPL
+ 80C1 D083      	POP DPH
                 	  
- 80C0 E500      	MOV	A, CLOCK_MODIFIED
- 80C2 B40109    	CJNE	A, #01H, NOT_MODIFIED
- 80C5 AF33      	MOV	R7, STATICHOURINFO
- 80C7 AE34      	MOV	R6, STATICMININFO
- 80C9 AD35      	MOV	R5, STATICSECINFO
- 80CB 750000    	MOV	CLOCK_MODIFIED, #00H
+ 80C3 E500      	MOV	A, CLOCK_MODIFIED
+ 80C5 B40109    	CJNE	A, #01H, NOT_MODIFIED
+ 80C8 AF33      	MOV	R7, STATICHOURINFO
+ 80CA AE34      	MOV	R6, STATICMININFO
+ 80CC AD35      	MOV	R5, STATICSECINFO
+ 80CE 750000    	MOV	CLOCK_MODIFIED, #00H
                 
- 80CE           NOT_MODIFIED:
- 80CE 00        	NOP
- 80CF 22        	RET
+ 80D1           NOT_MODIFIED:
+ 80D1 00        	NOP
+ 80D2 22        	RET
                 
                 
- 80D0           ;LCD 초기화 수행                                
- 80D0           LCD_INIT:   
- 80D0 752038    	MOV     INST,#FUN5   
- 80D3 1284FE    	CALL    INSTWR                            
+ 80D3           ;LCD 초기화 수행                                
+ 80D3           LCD_INIT:   
+ 80D3 752038    	MOV     INST,#FUN5   
+ 80D6 12851D    	CALL    INSTWR                            
                            	      
- 80D6 75200E    	MOV     INST,#DCB6    
- 80D9 1284FE    	CALL    INSTWR
+ 80D9 75200E    	MOV     INST,#DCB6    
+ 80DC 12851D    	CALL    INSTWR
                 
- 80DC 752001    	MOV     INST,#CLEAR     
- 80DF 1284FE    	CALL    INSTWR
+ 80DF 752001    	MOV     INST,#CLEAR     
+ 80E2 12851D    	CALL    INSTWR
                 	
- 80E2 752006    	MOV     INST,#ENTRY2
- 80E5 1284FE    	CALL    INSTWR 
+ 80E5 752006    	MOV     INST,#ENTRY2
+ 80E8 12851D    	CALL    INSTWR 
                 	       
                             
                             
- 80E8           ;초기 메세지 표시
+ 80EB           ;초기 메세지 표시
                 
- 80E8           LCD_MESG:   
- 80E8           	;시간 정보 백업
- 80E8 8F2A      	MOV	INFO1, R7
- 80EA 8E2B      	MOV	INFO2, R6
- 80EC 8D2C      	MOV	INFO3, R5
+ 80EB           LCD_MESG:   
+ 80EB           	;시간 정보 백업
+ 80EB 8F2A      	MOV	INFO1, R7
+ 80ED 8E2B      	MOV	INFO2, R6
+ 80EF 8D2C      	MOV	INFO3, R5
                 	
                 	
- 80EE           	; 모드값에 따라서 LCD에 다르게 표시  
- 80EE E532      	MOV	A, MODE_STATUS
- 80F0 B40003    	CJNE	A, #00H, CLOCK_RUN_PASS
- 80F3 028109    	JMP	CLOCK_RUN_MODE
+ 80F1           	; 모드값에 따라서 LCD에 다르게 표시  
+ 80F1 E532      	MOV	A, MODE_STATUS
+ 80F3 B40003    	CJNE	A, #00H, CLOCK_RUN_PASS
+ 80F6 02810C    	JMP	CLOCK_RUN_MODE
                 	  
- 80F6           CLOCK_RUN_PASS:
- 80F6 B40103    	CJNE	A, #01H, CLOCK_MODI_PASS
- 80F9 028286    	JMP	CLOCK_MODI_MODE
+ 80F9           CLOCK_RUN_PASS:
+ 80F9 B40103    	CJNE	A, #01H, CLOCK_MODI_PASS
+ 80FC 028289    	JMP	CLOCK_MODI_MODE
                 
- 80FC           CLOCK_MODI_PASS:
- 80FC B41003    	CJNE	A, #10H, DOOR_CLOSE_PASS
- 80FF 0283F7    	JMP	DOOR_CLOSE_MODE
+ 80FF           CLOCK_MODI_PASS:
+ 80FF B41003    	CJNE	A, #10H, DOOR_CLOSE_PASS
+ 8102 0283FA    	JMP	DOOR_CLOSE_MODE
                 
- 8102           DOOR_CLOSE_PASS:
- 8102 B41103    	CJNE	A, #11H, DOOR_OPEN_PASS
- 8105 028431    	JMP	DOOR_OPEN_MODE
+ 8105           DOOR_CLOSE_PASS:
+ 8105 B41103    	CJNE	A, #11H, DOOR_OPEN_PASS
+ 8108 028450    	JMP	DOOR_OPEN_MODE
                 
- 8108           DOOR_OPEN_PASS:
- 8108 00        	NOP
+ 810B           DOOR_OPEN_PASS:
+ 810B 00        	NOP
                 	
                 	
                 	  
@@ -272,736 +278,776 @@
                 	
                 
                 	
- 8109           CLOCK_RUN_MODE:
- 8109           	; 수정모드를 위한 고정 시간정보 백업
- 8109 8F33      	MOV STATICHOURINFO, R7
- 810B 8E34      	MOV STATICMININFO, R6
- 810D 8D35      	MOV STATICSECINFO, R5
- 810F           	;첫번째 행 시간 정보 글자 뿌리기
- 810F 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
- 8112 752306    	MOV     LCOL,#06H ; 글자 시작 위치(열)
+ 810C           CLOCK_RUN_MODE:
+ 810C           	; 수정모드를 위한 고정 시간정보 백업
+ 810C 8F33      	MOV STATICHOURINFO, R7
+ 810E 8E34      	MOV STATICMININFO, R6
+ 8110 8D35      	MOV STATICSECINFO, R5
+ 8112           	;첫번째 행 시간 정보 글자 뿌리기
+ 8112 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+ 8115 752306    	MOV     LCOL,#06H ; 글자 시작 위치(열)
                             
- 8115 752006    	MOV     INST,#ENTRY2
- 8118 1284FE    	CALL    INSTWR 
- 811B 1284E0    	CALL    CUR_MOV
- 811E 90851A    	MOV     DPTR,#CLOCKS
+ 8118 752006    	MOV     INST,#ENTRY2
+ 811B 12851D    	CALL    INSTWR 
+ 811E 1284FF    	CALL    CUR_MOV
+ 8121 908539    	MOV     DPTR,#CLOCKS
                 
- 8121 858225    	MOV     FDPL,DPL
- 8124 858326    	MOV     FDPH,DPH
+ 8124 858225    	MOV     FDPL,DPL
+ 8127 858326    	MOV     FDPH,DPH
                 	    
- 8127           	;시간정보            
- 8127 752402    	MOV     NUMFONT,#02H
- 812A E52A      	MOV	A, INFO1
- 812C 75F010    	MOV     B, #10H
- 812F 84        	DIV     AB
- 8130 F528      	MOV	NUM1, A
- 8132 85F029    	MOV     NUM2, B
- 8135 852827    	MOV     DISNUM,NUM1		;시간정보 십자리
- 8138 1284B9    	CALL    DISFONT 
- 813B 0523      	INC	LCOL
- 813D 1284E0    	CALL    CUR_MOV
- 8140 852927    	MOV     DISNUM,NUM2		;시간정보 일자리
- 8143 1284B9    	CALL    DISFONT
+ 812A           	;시간정보            
+ 812A 752402    	MOV     NUMFONT,#02H
+ 812D E52A      	MOV	A, INFO1
+ 812F 75F010    	MOV     B, #10H
+ 8132 84        	DIV     AB
+ 8133 F528      	MOV	NUM1, A
+ 8135 85F029    	MOV     NUM2, B
+ 8138 852827    	MOV     DISNUM,NUM1		;시간정보 십자리
+ 813B 1284D8    	CALL    DISFONT 
+ 813E 0523      	INC	LCOL
+ 8140 1284FF    	CALL    CUR_MOV
+ 8143 852927    	MOV     DISNUM,NUM2		;시간정보 일자리
+ 8146 1284D8    	CALL    DISFONT
                 	    
- 8146           	;콜론
- 8146 0523      	INC	LCOL
- 8148 1284E0    	CALL    CUR_MOV
- 814B 75270A    	MOV     DISNUM,#0AH
- 814E 1284B9    	CALL    DISFONT
+ 8149           	;콜론
+ 8149 0523      	INC	LCOL
+ 814B 1284FF    	CALL    CUR_MOV
+ 814E 75270A    	MOV     DISNUM,#0AH
+ 8151 1284D8    	CALL    DISFONT
                 	    
                 	    
- 8151           	;분 정보
- 8151 752309    	MOV     LCOL,#09H
- 8154 1284E0    	CALL    CUR_MOV
- 8157 E52B      	MOV	A, INFO2
- 8159 75F010    	MOV     B, #10H
- 815C 84        	DIV     AB
- 815D F528      	MOV	NUM1, A
- 815F 85F029    	MOV     NUM2, B
- 8162 852827    	MOV     DISNUM,NUM1		;분정보 십자리
- 8165 1284B9    	CALL    DISFONT
- 8168 0523      	INC	LCOL
- 816A 1284E0    	CALL    CUR_MOV
- 816D 852927    	MOV     DISNUM,NUM2		;분정보 일자리
- 8170 1284B9    	CALL    DISFONT
+ 8154           	;분 정보
+ 8154 752309    	MOV     LCOL,#09H
+ 8157 1284FF    	CALL    CUR_MOV
+ 815A E52B      	MOV	A, INFO2
+ 815C 75F010    	MOV     B, #10H
+ 815F 84        	DIV     AB
+ 8160 F528      	MOV	NUM1, A
+ 8162 85F029    	MOV     NUM2, B
+ 8165 852827    	MOV     DISNUM,NUM1		;분정보 십자리
+ 8168 1284D8    	CALL    DISFONT
+ 816B 0523      	INC	LCOL
+ 816D 1284FF    	CALL    CUR_MOV
+ 8170 852927    	MOV     DISNUM,NUM2		;분정보 일자리
+ 8173 1284D8    	CALL    DISFONT
                 
- 8173           	;콜론
- 8173 0523      	INC	LCOL
- 8175 1284E0    	CALL    CUR_MOV
- 8178 75270A    	MOV     DISNUM,#0AH
- 817B 1284B9    	CALL    DISFONT
+ 8176           	;콜론
+ 8176 0523      	INC	LCOL
+ 8178 1284FF    	CALL    CUR_MOV
+ 817B 75270A    	MOV     DISNUM,#0AH
+ 817E 1284D8    	CALL    DISFONT
                 	    
                 	    
- 817E           	;초 정보
- 817E 75230C    	MOV     LCOL,#0CH
- 8181 1284E0    	CALL    CUR_MOV
- 8184 E52C      	MOV	A, INFO3
- 8186 75F010    	MOV     B, #10H
- 8189 84        	DIV     AB
- 818A F528      	MOV	NUM1, A
- 818C 85F029    	MOV     NUM2, B
- 818F 852827    	MOV     DISNUM,NUM1		;초정보 십자리
- 8192 1284B9    	CALL    DISFONT
- 8195 0523      	INC	LCOL
- 8197 1284E0    	CALL    CUR_MOV
- 819A 852927    	MOV     DISNUM,NUM2		;초정보 일자리
- 819D 1284B9    	CALL    DISFONT
+ 8181           	;초 정보
+ 8181 75230C    	MOV     LCOL,#0CH
+ 8184 1284FF    	CALL    CUR_MOV
+ 8187 E52C      	MOV	A, INFO3
+ 8189 75F010    	MOV     B, #10H
+ 818C 84        	DIV     AB
+ 818D F528      	MOV	NUM1, A
+ 818F 85F029    	MOV     NUM2, B
+ 8192 852827    	MOV     DISNUM,NUM1		;초정보 십자리
+ 8195 1284D8    	CALL    DISFONT
+ 8198 0523      	INC	LCOL
+ 819A 1284FF    	CALL    CUR_MOV
+ 819D 852927    	MOV     DISNUM,NUM2		;초정보 일자리
+ 81A0 1284D8    	CALL    DISFONT
                 	   
- 81A0 E537      	MOV 	A, DOOR_STATUS
- 81A2 B4001B    	CJNE	A, #00H, DOOR_OPEN
- 81A5           	    				;도어락 상태 표시
- 81A5 0523      	INC LCOL
- 81A7 0523      	INC	LCOL
- 81A9 1284E0    	CALL    CUR_MOV
- 81AC 75270C    	MOV     DISNUM,#0CH		;D
- 81AF 1284B9    	CALL    DISFONT
- 81B2 0523      	INC	LCOL
- 81B4 1284E0    	CALL    CUR_MOV
- 81B7 75270D    	MOV     DISNUM,#0DH		;C
- 81BA 1284B9    	CALL    DISFONT
- 81BD 0281D8    	JMP		DIS_SECOND_LINE
+ 81A3 E537      	MOV 	A, DOOR_STATUS
+ 81A5 B4001B    	CJNE	A, #00H, DOOR_OPEN
+ 81A8           	    				;도어락 상태 표시
+ 81A8 0523      	INC LCOL
+ 81AA 0523      	INC	LCOL
+ 81AC 1284FF    	CALL    CUR_MOV
+ 81AF 75270C    	MOV     DISNUM,#0CH		;D
+ 81B2 1284D8    	CALL    DISFONT
+ 81B5 0523      	INC	LCOL
+ 81B7 1284FF    	CALL    CUR_MOV
+ 81BA 75270D    	MOV     DISNUM,#0DH		;C
+ 81BD 1284D8    	CALL    DISFONT
+ 81C0 0281DB    	JMP		DIS_SECOND_LINE
                 	
- 81C0           	DOOR_OPEN:
- 81C0 0523      		INC LCOL
- 81C2 0523      		INC	LCOL
- 81C4 1284E0    		CALL    CUR_MOV
- 81C7 75270C    		MOV     DISNUM,#0CH		;D
- 81CA 1284B9    		CALL    DISFONT
- 81CD 0523      		INC	LCOL
- 81CF 1284E0    		CALL    CUR_MOV
- 81D2 75270F    		MOV     DISNUM,#0FH		;O
- 81D5 1284B9    		CALL    DISFONT
+ 81C3           	DOOR_OPEN:
+ 81C3 0523      		INC LCOL
+ 81C5 0523      		INC	LCOL
+ 81C7 1284FF    		CALL    CUR_MOV
+ 81CA 75270C    		MOV     DISNUM,#0CH		;D
+ 81CD 1284D8    		CALL    DISFONT
+ 81D0 0523      		INC	LCOL
+ 81D2 1284FF    		CALL    CUR_MOV
+ 81D5 75270F    		MOV     DISNUM,#0FH		;O
+ 81D8 1284D8    		CALL    DISFONT
                 
- 81D8           DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
- 81D8 752202    	MOV     LROW,#02H
- 81DB 752306    	MOV     LCOL,#06H
- 81DE 1284E0    	CALL    CUR_MOV
+ 81DB           DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
+ 81DB 752202    	MOV     LROW,#02H
+ 81DE 752306    	MOV     LCOL,#06H
+ 81E1 1284FF    	CALL    CUR_MOV
                 	    
- 81E1           	;연월일 정보 초기화(일단 임시값으로)
- 81E1 752F10    	MOV YEARINFO, #16
- 81E4 753015    	MOV MONTHINFO, #21
- 81E7 753120    	MOV DAYINFO, #32
+ 81E4           	;연월일 정보 초기화(일단 임시값으로)
+ 81E4 752F10    	MOV YEARINFO, #16
+ 81E7 753015    	MOV MONTHINFO, #21
+ 81EA 753120    	MOV DAYINFO, #32
                  	    
- 81EA           	;연 정보
- 81EA E52F      	MOV 	A,YEARINFO
- 81EC 75F00A    	MOV	B,#10
- 81EF 84        	DIV	AB
- 81F0 F528      	MOV	NUM1,A
- 81F2 85F029    	MOV	NUM2,B
- 81F5 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
- 81F8 1284B9    	CALL    DISFONT
- 81FB 0523      	INC	LCOL
- 81FD 1284E0    	CALL    CUR_MOV
- 8200 852927    	MOV     DISNUM,NUM2		;연정보 일자리
- 8203 1284B9    	CALL    DISFONT
+ 81ED           	;연 정보
+ 81ED E52F      	MOV 	A,YEARINFO
+ 81EF 75F00A    	MOV	B,#10
+ 81F2 84        	DIV	AB
+ 81F3 F528      	MOV	NUM1,A
+ 81F5 85F029    	MOV	NUM2,B
+ 81F8 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
+ 81FB 1284D8    	CALL    DISFONT
+ 81FE 0523      	INC	LCOL
+ 8200 1284FF    	CALL    CUR_MOV
+ 8203 852927    	MOV     DISNUM,NUM2		;연정보 일자리
+ 8206 1284D8    	CALL    DISFONT
                 	    
- 8206           	;빼기 문자
- 8206 0523      	INC	   LCOL
- 8208 1284E0    	CALL    CUR_MOV
- 820B 75270B    	MOV     DISNUM,#0BH
- 820E 1284B9    	CALL    DISFONT
+ 8209           	;빼기 문자
+ 8209 0523      	INC	   LCOL
+ 820B 1284FF    	CALL    CUR_MOV
+ 820E 75270B    	MOV     DISNUM,#0BH
+ 8211 1284D8    	CALL    DISFONT
                 	    
- 8211           	    ;월 정보
- 8211 752309    	MOV     LCOL,#09H
- 8214 1284E0    	CALL    CUR_MOV
- 8217 E530      	MOV 	A,MONTHINFO
- 8219 75F00A    	MOV	B,#10
- 821C 84        	DIV	AB
- 821D F528      	MOV	NUM1,A
- 821F 85F029    	MOV	NUM2,B
- 8222 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
- 8225 1284B9    	CALL   	DISFONT
- 8228 0523      	INC	LCOL
- 822A 1284E0    	CALL   	CUR_MOV
- 822D 852927    	MOV     DISNUM,NUM2		;연정보 일자리
- 8230 1284B9    	CALL	DISFONT
+ 8214           	    ;월 정보
+ 8214 752309    	MOV     LCOL,#09H
+ 8217 1284FF    	CALL    CUR_MOV
+ 821A E530      	MOV 	A,MONTHINFO
+ 821C 75F00A    	MOV	B,#10
+ 821F 84        	DIV	AB
+ 8220 F528      	MOV	NUM1,A
+ 8222 85F029    	MOV	NUM2,B
+ 8225 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
+ 8228 1284D8    	CALL   	DISFONT
+ 822B 0523      	INC	LCOL
+ 822D 1284FF    	CALL   	CUR_MOV
+ 8230 852927    	MOV     DISNUM,NUM2		;연정보 일자리
+ 8233 1284D8    	CALL	DISFONT
                 	    
- 8233           	    ;빼기 문자
- 8233 0523      	INC	LCOL
- 8235 1284E0    	CALL    CUR_MOV
- 8238 75270B    	MOV     DISNUM,#0BH
- 823B 1284B9    	CALL    DISFONT
+ 8236           	    ;빼기 문자
+ 8236 0523      	INC	LCOL
+ 8238 1284FF    	CALL    CUR_MOV
+ 823B 75270B    	MOV     DISNUM,#0BH
+ 823E 1284D8    	CALL    DISFONT
                 
- 823E           	    ;일 정보
- 823E 75230C    	MOV     LCOL,#0CH
- 8241 1284E0    	CALL    CUR_MOV
- 8244 E531      	MOV 	A,DAYINFO
- 8246 75F00A    	MOV	B,#10
- 8249 84        	DIV	AB
- 824A F528      	MOV	NUM1,A
- 824C 85F029    	MOV	NUM2,B
- 824F 852827    	MOV	DISNUM,NUM1	;일 정보 십자리
- 8252 1284B9    	CALL   	DISFONT
- 8255 0523      	INC	LCOL
- 8257 1284E0    	CALL   	CUR_MOV
- 825A 852927    	MOV     DISNUM,NUM2	;일 정보 일자리
- 825D 1284B9    	CALL	DISFONT
+ 8241           	    ;일 정보
+ 8241 75230C    	MOV     LCOL,#0CH
+ 8244 1284FF    	CALL    CUR_MOV
+ 8247 E531      	MOV 	A,DAYINFO
+ 8249 75F00A    	MOV	B,#10
+ 824C 84        	DIV	AB
+ 824D F528      	MOV	NUM1,A
+ 824F 85F029    	MOV	NUM2,B
+ 8252 852827    	MOV	DISNUM,NUM1	;일 정보 십자리
+ 8255 1284D8    	CALL   	DISFONT
+ 8258 0523      	INC	LCOL
+ 825A 1284FF    	CALL   	CUR_MOV
+ 825D 852927    	MOV     DISNUM,NUM2	;일 정보 일자리
+ 8260 1284D8    	CALL	DISFONT
                 	    
- 8260           	; 모드 표시하기
- 8260 0523      	INC LCOL
- 8262 0523      	INC	   	LCOL
- 8264 1284E0    	CALL   	CUR_MOV
- 8267 75270F    	MOV     	DISNUM,#0FH	;일 정보 일자리
- 826A 1284B9    	CALL	DISFONT
+ 8263           	; 모드 표시하기
+ 8263 0523      	INC LCOL
+ 8265 0523      	INC	   	LCOL
+ 8267 1284FF    	CALL   	CUR_MOV
+ 826A 75270F    	MOV     	DISNUM,#0FH	;일 정보 일자리
+ 826D 1284D8    	CALL	DISFONT
                 
- 826D C083      	PUSH DPH
- 826F C082      	PUSH DPL
- 8271 C0E0      	PUSH A
- 8273 C0F0      	PUSH B
- 8275 C001      	PUSH 01H
- 8277 C002      	PUSH 02H
- 8279 C003      	PUSH 03H
- 827B C004      	PUSH 04H
- 827D C005      	PUSH 05H
- 827F C006      	PUSH 06H
- 8281 C007      	PUSH 07H
- 8283 028482    	JMP	SCANN
+ 8270 C083      	PUSH DPH
+ 8272 C082      	PUSH DPL
+ 8274 C0E0      	PUSH A
+ 8276 C0F0      	PUSH B
+ 8278 C001      	PUSH 01H
+ 827A C002      	PUSH 02H
+ 827C C003      	PUSH 03H
+ 827E C004      	PUSH 04H
+ 8280 C005      	PUSH 05H
+ 8282 C006      	PUSH 06H
+ 8284 C007      	PUSH 07H
+ 8286 0284A1    	JMP	SCANN
                 
                 
- 8286           CLOCK_MODI_MODE:
- 8286           	  	;첫번째 행 시간 정보 글자 뿌리기
- 8286 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
- 8289 752306    	MOV     LCOL,#06H ; 글자 시작 위치(열)
+ 8289           CLOCK_MODI_MODE:
+ 8289           	  	;첫번째 행 시간 정보 글자 뿌리기
+ 8289 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+ 828C 752306    	MOV     LCOL,#06H ; 글자 시작 위치(열)
                             
- 828C 752006    	MOV     INST,#ENTRY2
- 828F 1284FE    	CALL    INSTWR 
- 8292 1284E0    	CALL    CUR_MOV
- 8295 90851A    	MOV     DPTR,#CLOCKS
+ 828F 752006    	MOV     INST,#ENTRY2
+ 8292 12851D    	CALL    INSTWR 
+ 8295 1284FF    	CALL    CUR_MOV
+ 8298 908539    	MOV     DPTR,#CLOCKS
                 
- 8298 858225    	MOV     FDPL,DPL
- 829B 858326    	MOV     FDPH,DPH
+ 829B 858225    	MOV     FDPL,DPL
+ 829E 858326    	MOV     FDPH,DPH
                 	    
- 829E           	;시간정보            
- 829E 752402    	MOV     NUMFONT,#02H
- 82A1 E533      	MOV	    A, STATICHOURINFO
- 82A3 75F010    	MOV     B, #10H
- 82A6 84        	DIV     AB
- 82A7 F528      	MOV	    NUM1, A
- 82A9 85F029    	MOV     NUM2, B
- 82AC 852827    	MOV     DISNUM,NUM1		;시간정보 십자리
- 82AF 1284B9    	CALL    DISFONT 
- 82B2 0523      	INC	    LCOL
- 82B4 1284E0    	CALL    CUR_MOV
- 82B7 852927    	MOV     DISNUM,NUM2		;시간정보 일자리
- 82BA 1284B9    	CALL    DISFONT
+ 82A1           	;시간정보            
+ 82A1 752402    	MOV     NUMFONT,#02H
+ 82A4 E533      	MOV	    A, STATICHOURINFO
+ 82A6 75F010    	MOV     B, #10H
+ 82A9 84        	DIV     AB
+ 82AA F528      	MOV	    NUM1, A
+ 82AC 85F029    	MOV     NUM2, B
+ 82AF 852827    	MOV     DISNUM,NUM1		;시간정보 십자리
+ 82B2 1284D8    	CALL    DISFONT 
+ 82B5 0523      	INC	    LCOL
+ 82B7 1284FF    	CALL    CUR_MOV
+ 82BA 852927    	MOV     DISNUM,NUM2		;시간정보 일자리
+ 82BD 1284D8    	CALL    DISFONT
                 	    
- 82BD           	;콜론
- 82BD 0523      	INC	    LCOL
- 82BF 1284E0    	CALL    CUR_MOV
- 82C2 75270A    	MOV     DISNUM,#0AH
- 82C5 1284B9    	CALL    DISFONT
+ 82C0           	;콜론
+ 82C0 0523      	INC	    LCOL
+ 82C2 1284FF    	CALL    CUR_MOV
+ 82C5 75270A    	MOV     DISNUM,#0AH
+ 82C8 1284D8    	CALL    DISFONT
                 	    
- 82C8           	;분 정보
- 82C8 752309    	MOV     LCOL,#09H
- 82CB 1284E0    	CALL    CUR_MOV
- 82CE E534      	MOV	    A, STATICMININFO
- 82D0 75F010    	MOV     B, #10H
- 82D3 84        	DIV     AB
- 82D4 F528      	MOV	    NUM1, A
- 82D6 85F029    	MOV     NUM2, B
- 82D9 852827    	MOV     DISNUM,NUM1		;분정보 십자리
- 82DC 1284B9    	CALL    DISFONT
- 82DF 0523      	INC	    LCOL
- 82E1 1284E0    	CALL    CUR_MOV
- 82E4 852927    	MOV     DISNUM,NUM2		;분정보 일자리
- 82E7 1284B9    	CALL    DISFONT
+ 82CB           	;분 정보
+ 82CB 752309    	MOV     LCOL,#09H
+ 82CE 1284FF    	CALL    CUR_MOV
+ 82D1 E534      	MOV	    A, STATICMININFO
+ 82D3 75F010    	MOV     B, #10H
+ 82D6 84        	DIV     AB
+ 82D7 F528      	MOV	    NUM1, A
+ 82D9 85F029    	MOV     NUM2, B
+ 82DC 852827    	MOV     DISNUM,NUM1		;분정보 십자리
+ 82DF 1284D8    	CALL    DISFONT
+ 82E2 0523      	INC	    LCOL
+ 82E4 1284FF    	CALL    CUR_MOV
+ 82E7 852927    	MOV     DISNUM,NUM2		;분정보 일자리
+ 82EA 1284D8    	CALL    DISFONT
                 
- 82EA           	;콜론
- 82EA 0523      	INC	    LCOL
- 82EC 1284E0    	CALL    CUR_MOV
- 82EF 75270A    	MOV     DISNUM,#0AH
- 82F2 1284B9    	CALL    DISFONT
- 82F5           	    ;초 정보
- 82F5 75230C    	MOV     LCOL,#0CH
- 82F8 1284E0    	CALL    CUR_MOV
- 82FB E535      	MOV	    A, STATICSECINFO
- 82FD 75F010    	MOV     B, #10H
- 8300 84        	DIV     AB
- 8301 F528      	MOV	    NUM1, A
- 8303 85F029    	MOV     NUM2, B
- 8306 852827    	MOV     DISNUM,NUM1		;초정보 십자리
- 8309 1284B9    	CALL    DISFONT
- 830C 0523      	INC	    LCOL
- 830E 1284E0    	CALL    CUR_MOV
- 8311 852927    	MOV     DISNUM,NUM2		;초정보 일자리
- 8314 1284B9    	CALL    DISFONT
+ 82ED           	;콜론
+ 82ED 0523      	INC	    LCOL
+ 82EF 1284FF    	CALL    CUR_MOV
+ 82F2 75270A    	MOV     DISNUM,#0AH
+ 82F5 1284D8    	CALL    DISFONT
+ 82F8           	    ;초 정보
+ 82F8 75230C    	MOV     LCOL,#0CH
+ 82FB 1284FF    	CALL    CUR_MOV
+ 82FE E535      	MOV	    A, STATICSECINFO
+ 8300 75F010    	MOV     B, #10H
+ 8303 84        	DIV     AB
+ 8304 F528      	MOV	    NUM1, A
+ 8306 85F029    	MOV     NUM2, B
+ 8309 852827    	MOV     DISNUM,NUM1		;초정보 십자리
+ 830C 1284D8    	CALL    DISFONT
+ 830F 0523      	INC	    LCOL
+ 8311 1284FF    	CALL    CUR_MOV
+ 8314 852927    	MOV     DISNUM,NUM2		;초정보 일자리
+ 8317 1284D8    	CALL    DISFONT
                 
- 8317 E537      	MOV 	A, DOOR_STATUS
- 8319 B4001B    	CJNE	A, #00H, DOOR_OPEN_MODI
- 831C           	    				;도어락 상태 표시
- 831C 0523      	INC LCOL
- 831E 0523      	INC	    LCOL
- 8320 1284E0    	CALL    CUR_MOV
- 8323 75270C    	MOV     DISNUM,#0CH		;D
- 8326 1284B9    	CALL    DISFONT
- 8329 0523      	INC	    LCOL
- 832B 1284E0    	CALL    CUR_MOV
- 832E 75270D    	MOV     DISNUM,#0DH		;C
- 8331 1284B9    	CALL    DISFONT
- 8334 02834F    	JMP		DIS_SECOND_LIN
+ 831A E537      	MOV 	A, DOOR_STATUS
+ 831C B4001B    	CJNE	A, #00H, DOOR_OPEN_MODI
+ 831F           	    				;도어락 상태 표시
+ 831F 0523      	INC LCOL
+ 8321 0523      	INC	    LCOL
+ 8323 1284FF    	CALL    CUR_MOV
+ 8326 75270C    	MOV     DISNUM,#0CH		;D
+ 8329 1284D8    	CALL    DISFONT
+ 832C 0523      	INC	    LCOL
+ 832E 1284FF    	CALL    CUR_MOV
+ 8331 75270D    	MOV     DISNUM,#0DH		;C
+ 8334 1284D8    	CALL    DISFONT
+ 8337 028352    	JMP		DIS_SECOND_LIN
                 	
- 8337           	DOOR_OPEN_MODI:
- 8337 0523      	INC LCOL
- 8339 0523      	INC	    LCOL
- 833B 1284E0    	CALL    CUR_MOV
- 833E 75270C    	MOV     DISNUM,#0CH		;D
- 8341 1284B9    	CALL    DISFONT
- 8344 0523      	INC	    LCOL
- 8346 1284E0    	CALL    CUR_MOV
- 8349 75270F    	MOV     DISNUM,#0FH		;O
- 834C 1284B9    	CALL    DISFONT
+ 833A           	DOOR_OPEN_MODI:
+ 833A 0523      	INC LCOL
+ 833C 0523      	INC	    LCOL
+ 833E 1284FF    	CALL    CUR_MOV
+ 8341 75270C    	MOV     DISNUM,#0CH		;D
+ 8344 1284D8    	CALL    DISFONT
+ 8347 0523      	INC	    LCOL
+ 8349 1284FF    	CALL    CUR_MOV
+ 834C 75270F    	MOV     DISNUM,#0FH		;O
+ 834F 1284D8    	CALL    DISFONT
                 
- 834F           DIS_SECOND_LIN:
- 834F           	;두번째 행 글자 뿌리기 시작
- 834F 752202    	MOV     LROW,#02H
- 8352 752306    	MOV     LCOL,#06H
- 8355 1284E0    	CALL    CUR_MOV
+ 8352           DIS_SECOND_LIN:
+ 8352           	;두번째 행 글자 뿌리기 시작
+ 8352 752202    	MOV     LROW,#02H
+ 8355 752306    	MOV     LCOL,#06H
+ 8358 1284FF    	CALL    CUR_MOV
                 	    
                  	    
- 8358           	;연 정보
- 8358 E52F      	MOV 	A,YEARINFO
- 835A 75F00A    	MOV	B,#10
- 835D 84        	DIV	AB
- 835E F528      	MOV	NUM1,A
- 8360 85F029    	MOV	NUM2,B
- 8363 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
- 8366 1284B9    	CALL    DISFONT
- 8369 0523      	INC	LCOL
- 836B 1284E0    	CALL    CUR_MOV
- 836E 852927    	MOV     DISNUM,NUM2		;연정보 일자리
- 8371 1284B9    	CALL    DISFONT
+ 835B           	;연 정보
+ 835B E52F      	MOV 	A,YEARINFO
+ 835D 75F00A    	MOV	B,#10
+ 8360 84        	DIV	AB
+ 8361 F528      	MOV	NUM1,A
+ 8363 85F029    	MOV	NUM2,B
+ 8366 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
+ 8369 1284D8    	CALL    DISFONT
+ 836C 0523      	INC	LCOL
+ 836E 1284FF    	CALL    CUR_MOV
+ 8371 852927    	MOV     DISNUM,NUM2		;연정보 일자리
+ 8374 1284D8    	CALL    DISFONT
                 	    
- 8374           	;빼기 문자
- 8374 0523      	INC	LCOL
- 8376 1284E0    	CALL    CUR_MOV
- 8379 75270B    	MOV     DISNUM,#0BH
- 837C 1284B9    	CALL    DISFONT
+ 8377           	;빼기 문자
+ 8377 0523      	INC	LCOL
+ 8379 1284FF    	CALL    CUR_MOV
+ 837C 75270B    	MOV     DISNUM,#0BH
+ 837F 1284D8    	CALL    DISFONT
                 	    
- 837F           	;월 정보
- 837F 752309    	MOV     LCOL,#09H
- 8382 1284E0    	CALL    CUR_MOV
- 8385 E530      	MOV 	A,MONTHINFO
- 8387 75F00A    	MOV	B,#10
- 838A 84        	DIV	AB
- 838B F528      	MOV	NUM1,A
- 838D 85F029    	MOV	NUM2,B
- 8390 852827    	MOV	DISNUM,NUM1	;월 정보 십자리
- 8393 1284B9    	CALL   	DISFONT
- 8396 0523      	INC	LCOL
- 8398 1284E0    	CALL   	CUR_MOV
- 839B 852927    	MOV     DISNUM,NUM2		;월 정보 일자리
- 839E 1284B9    	CALL	DISFONT
+ 8382           	;월 정보
+ 8382 752309    	MOV     LCOL,#09H
+ 8385 1284FF    	CALL    CUR_MOV
+ 8388 E530      	MOV 	A,MONTHINFO
+ 838A 75F00A    	MOV	B,#10
+ 838D 84        	DIV	AB
+ 838E F528      	MOV	NUM1,A
+ 8390 85F029    	MOV	NUM2,B
+ 8393 852827    	MOV	DISNUM,NUM1	;월 정보 십자리
+ 8396 1284D8    	CALL   	DISFONT
+ 8399 0523      	INC	LCOL
+ 839B 1284FF    	CALL   	CUR_MOV
+ 839E 852927    	MOV     DISNUM,NUM2		;월 정보 일자리
+ 83A1 1284D8    	CALL	DISFONT
                 	    
- 83A1           	;빼기 문자
- 83A1 0523      	INC	    LCOL
- 83A3 1284E0    	CALL    CUR_MOV
- 83A6 75270B    	MOV     DISNUM,#0BH
- 83A9 1284B9    	CALL    DISFONT
+ 83A4           	;빼기 문자
+ 83A4 0523      	INC	    LCOL
+ 83A6 1284FF    	CALL    CUR_MOV
+ 83A9 75270B    	MOV     DISNUM,#0BH
+ 83AC 1284D8    	CALL    DISFONT
                 
- 83AC           	;일 정보
- 83AC 75230C    	MOV     	LCOL,#0CH
- 83AF 1284E0    	CALL    	CUR_MOV
- 83B2 E531      	MOV 	A,DAYINFO
- 83B4 75F00A    	MOV		B,#10
- 83B7 84        	DIV		AB
- 83B8 F528      	MOV		NUM1,A
- 83BA 85F029    	MOV		NUM2,B
- 83BD 852827    	MOV		DISNUM,NUM1	;일 정보 십자리
- 83C0 1284B9    	CALL   	DISFONT
- 83C3 0523      	INC	   	LCOL
- 83C5 1284E0    	CALL   	CUR_MOV
- 83C8 852927    	MOV     	DISNUM,NUM2	;일 정보 일자리
- 83CB 1284B9    	CALL	DISFONT
+ 83AF           	;일 정보
+ 83AF 75230C    	MOV     	LCOL,#0CH
+ 83B2 1284FF    	CALL    	CUR_MOV
+ 83B5 E531      	MOV 	A,DAYINFO
+ 83B7 75F00A    	MOV		B,#10
+ 83BA 84        	DIV		AB
+ 83BB F528      	MOV		NUM1,A
+ 83BD 85F029    	MOV		NUM2,B
+ 83C0 852827    	MOV		DISNUM,NUM1	;일 정보 십자리
+ 83C3 1284D8    	CALL   	DISFONT
+ 83C6 0523      	INC	   	LCOL
+ 83C8 1284FF    	CALL   	CUR_MOV
+ 83CB 852927    	MOV     	DISNUM,NUM2	;일 정보 일자리
+ 83CE 1284D8    	CALL	DISFONT
                 		
- 83CE           	; 모드 표시하기
- 83CE 0523      	INC LCOL
- 83D0 0523      	INC	LCOL
- 83D2 1284E0    	CALL   	CUR_MOV
- 83D5 752710    	MOV    	DISNUM,#10H	;M
- 83D8 1284B9    	CALL	DISFONT
+ 83D1           	; 모드 표시하기
+ 83D1 0523      	INC LCOL
+ 83D3 0523      	INC	LCOL
+ 83D5 1284FF    	CALL   	CUR_MOV
+ 83D8 752710    	MOV    	DISNUM,#10H	;M
+ 83DB 1284D8    	CALL	DISFONT
                 
- 83DB 750001    	MOV	CLOCK_MODIFIED, #01H	
+ 83DE 750001    	MOV	CLOCK_MODIFIED, #01H	
                 
- 83DE C083      	PUSH DPH
- 83E0 C082      	PUSH DPL
- 83E2 C0E0      	PUSH A
- 83E4 C0F0      	PUSH B
- 83E6 C001      	PUSH 01H
- 83E8 C002      	PUSH 02H
- 83EA C003      	PUSH 03H
- 83EC C004      	PUSH 04H
- 83EE C005      	PUSH 05H
- 83F0 C006      	PUSH 06H
- 83F2 C007      	PUSH 07H
- 83F4 028482    	JMP	SCANN
+ 83E1 C083      	PUSH DPH
+ 83E3 C082      	PUSH DPL
+ 83E5 C0E0      	PUSH A
+ 83E7 C0F0      	PUSH B
+ 83E9 C001      	PUSH 01H
+ 83EB C002      	PUSH 02H
+ 83ED C003      	PUSH 03H
+ 83EF C004      	PUSH 04H
+ 83F1 C005      	PUSH 05H
+ 83F3 C006      	PUSH 06H
+ 83F5 C007      	PUSH 07H
+ 83F7 0284A1    	JMP	SCANN
                 
                 
- 83F7           DOOR_CLOSE_MODE:
- 83F7           	;첫번째 행 시간 정보 글자 뿌리기
- 83F7 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
- 83FA 752305    	MOV     LCOL,#05H ; 글자 시작 위치(열)
+ 83FA           DOOR_CLOSE_MODE:
+ 83FA           	;첫번째 행 시간 정보 글자 뿌리기
+ 83FA 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+ 83FD 752305    	MOV     LCOL,#05H ; 글자 시작 위치(열)
                             
- 83FD 752006    	MOV     INST,#ENTRY2
- 8400 1284FE    	CALL    INSTWR 
- 8403 1284E0    	CALL    CUR_MOV
- 8406 90852B    	MOV     DPTR,#LOCK_MESSAGES
+ 8400 752006    	MOV     INST,#ENTRY2
+ 8403 12851D    	CALL    INSTWR 
+ 8406 1284FF    	CALL    CUR_MOV
+ 8409 90854A    	MOV     DPTR,#LOCK_MESSAGES
                 
- 8409 858225    	MOV     FDPL,DPL
- 840C 858326    	MOV     FDPH,DPH
+ 840C 858225    	MOV     FDPL,DPL
+ 840F 858326    	MOV     FDPH,DPH
                 	
- 840F 752700    	MOV     DISNUM,#00H
- 8412 75240A    	MOV 	NUMFONT, #0AH
- 8415 1284CB    	CALL    DISSTRING
+ 8412 752700    	MOV     DISNUM,#00H
+ 8415 75240A    	MOV 	NUMFONT, #0AH
+ 8418 1284EA    	CALL    DISSTRING
                 	
- 8418 C083      	PUSH DPH
- 841A C082      	PUSH DPL
- 841C C0E0      	PUSH A
- 841E C0F0      	PUSH B
- 8420 C001      	PUSH 01H
- 8422 C002      	PUSH 02H
- 8424 C003      	PUSH 03H
- 8426 C004      	PUSH 04H
- 8428 C005      	PUSH 05H
- 842A C006      	PUSH 06H
- 842C C007      	PUSH 07H
- 842E 028482    	JMP	SCANN
+ 841B           	;두번째 행 시간 정보 글자 뿌리기
+ 841B 752202    	MOV     LROW,#02H ; 글자 시작 위치(행)
+ 841E 752307    	MOV     LCOL,#07H ; 글자 시작 위치(열)
+ 8421 1284FF    	CALL    CUR_MOV
+ 8424 908573    	MOV     DPTR,#STARS
+ 8427 858225    	MOV     FDPL,DPL
+ 842A 858326    	MOV     FDPH,DPH
+                	
+ 842D 752700    	MOV     DISNUM,#00H
+ 8430 7404      	MOV	A, #04H
+ 8432 F524      	MOV 	NUMFONT, A
+ 8434 1284EA    	CALL    DISSTRING
+                	
+ 8437 C083      	PUSH DPH
+ 8439 C082      	PUSH DPL
+ 843B C0E0      	PUSH A
+ 843D C0F0      	PUSH B
+ 843F C001      	PUSH 01H
+ 8441 C002      	PUSH 02H
+ 8443 C003      	PUSH 03H
+ 8445 C004      	PUSH 04H
+ 8447 C005      	PUSH 05H
+ 8449 C006      	PUSH 06H
+ 844B C007      	PUSH 07H
+ 844D 0284A1    	JMP	SCANN
                 
- 8431           DOOR_OPEN_MODE:
- 8431           	;첫번째 행 시간 정보 글자 뿌리기
- 8431 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
- 8434 752301    	MOV     LCOL,#01H ; 글자 시작 위치(열)
+ 8450           DOOR_OPEN_MODE:
+ 8450           	;첫번째 행 시간 정보 글자 뿌리기
+ 8450 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+ 8453 752301    	MOV     LCOL,#01H ; 글자 시작 위치(열)
                             
- 8437 752006    	MOV     INST,#ENTRY2
- 843A 1284FE    	CALL    INSTWR 
- 843D 1284E0    	CALL    CUR_MOV
- 8440 908542    	MOV     DPTR,#OPEN_MESSAGES
+ 8456 752006    	MOV     INST,#ENTRY2
+ 8459 12851D    	CALL    INSTWR 
+ 845C 1284FF    	CALL    CUR_MOV
+ 845F 908561    	MOV     DPTR,#OPEN_MESSAGES
                 
- 8443 858225    	MOV     FDPL,DPL
- 8446 858326    	MOV     FDPH,DPH
+ 8462 858225    	MOV     FDPL,DPL
+ 8465 858326    	MOV     FDPH,DPH
                 	
- 8449 752700    	MOV     DISNUM,#00H
- 844C 752412    	MOV 	NUMFONT, #12H
- 844F 1284CB    	CALL    DISSTRING
+ 8468 752700    	MOV     DISNUM,#00H
+ 846B 752412    	MOV 	NUMFONT, #12H
+ 846E 1284EA    	CALL    DISSTRING
                 	
- 8452 C083      	PUSH DPH
- 8454 C082      	PUSH DPL
- 8456 C0E0      	PUSH A
- 8458 C0F0      	PUSH B
- 845A C001      	PUSH 01H
- 845C C002      	PUSH 02H
- 845E C003      	PUSH 03H
- 8460 C004      	PUSH 04H
- 8462 C005      	PUSH 05H
- 8464 C006      	PUSH 06H
- 8466 C007      	PUSH 07H
- 8468 028482    	JMP	SCANN
+ 8471 C083      	PUSH DPH
+ 8473 C082      	PUSH DPL
+ 8475 C0E0      	PUSH A
+ 8477 C0F0      	PUSH B
+ 8479 C001      	PUSH 01H
+ 847B C002      	PUSH 02H
+ 847D C003      	PUSH 03H
+ 847F C004      	PUSH 04H
+ 8481 C005      	PUSH 05H
+ 8483 C006      	PUSH 06H
+ 8485 C007      	PUSH 07H
+ 8487 0284A1    	JMP	SCANN
                 
                 
- 846B           LCD_ROUTINE_END:
- 846B D007      	POP 07H
- 846D D006      	POP 06H
- 846F D005      	POP 05H
- 8471 D004      	POP 04H
- 8473 D003      	POP 03H
- 8475 D002      	POP 02H
- 8477 D001      	POP 01H
- 8479 D0F0      	POP B
- 847B D0E0      	POP A
- 847D D082      	POP DPL
- 847F D083      	POP DPH
+ 848A           LCD_ROUTINE_END:
+ 848A D007      	POP 07H
+ 848C D006      	POP 06H
+ 848E D005      	POP 05H
+ 8490 D004      	POP 04H
+ 8492 D003      	POP 03H
+ 8494 D002      	POP 02H
+ 8496 D001      	POP 01H
+ 8498 D0F0      	POP B
+ 849A D0E0      	POP A
+ 849C D082      	POP DPL
+ 849E D083      	POP DPH
                 
- 8481 22        	RET
-                
-                
+ 84A0 22        	RET
                 
                 
- 8482           ;키 패드 인터페이스 예제
-                
- 8482           SCANN:     	    		
- 8482 C0D0      	PUSH     PSW     ; PSW 값을 스택에 보관
- 8484 D2D4      	SETB     PSW.4   ; 뱅크3 레지스터 사용
- 8486 D2D3      	SETB     PSW.3
-                
- 8488 7900      INITIAL:   MOV      R1,#00H       ; R1의 초기화
- 848A 74EF                 MOV      A,#11101111B  ; 데이터 아웃의 초기값
-                
- 848C F8        COLSCAN:   MOV      R0,A          ; R0에 데이터 아웃 값 보관 
- 848D 09                   INC      R1            ; R1 열의 값 보관 
- 848E 128554    	   CALL     SUBKEY        ; 키 패드 입력 상태 조사
- 8491 541F                 ANL      A,#00011111B  ; 상위 3비트 제거
- 8493 641F                 XRL      A,#00011111B  ; XRL 연산000111111
- 8495 7007                 JNZ      RSCAN         ; 누산기 값이 0 이 아니면, 행 스캔
- 8497 E8                   MOV      A,R0           
- 8498 D3                   SETB     C
- 8499 13                   RRC      A             ; 다음 열로 이동
- 849A 5019                 JNC	KEY_RET       ; 모든 열을 스캔했으면, 다시 시작 
- 849C 80EE                 JMP      COLSCAN       ; 다음 열의 스캔을 위한 분기
                 
                 
- 849E 7A00      RSCAN:     MOV      R2,#00H       ; R2 행의 값 보관
- 84A0 13        ROWSCAN:   RRC      A             ; 어느 행이 "1" 로 바뀌었는지 조사
- 84A1 4003                 JC       MATRIX        ; 캐리가 발생하면, MATRIX로 분기
- 84A3 0A                   INC      R2            ; 캐리가 발생하지 않으면, 다음 행으로 이동
- 84A4 80FA                 JMP      ROWSCAN       ; 다음 행의 스캔을 위한 분기
+ 84A1           ;키 패드 인터페이스 예제
                 
- 84A6           MATRIX:    
- 84A6 EA        	MOV      A,R2          ; R2 에는 행의 값 보존
- 84A7 75F005            MOV      B,#05H        ; 1행은 5열로 이루어짐
- 84AA A4        	MUL      AB            ; 2차원 배열을 1차원 배열로 값을 바꿈
- 84AB 29        	ADD      A,R1          ; R1 에는 열의 값 보존
- 84AC 1285FA    	CALL     INDEX         ; 키 코드 값을 지정
- 84AF 12855F    	CALL     DISPLAY       ; 키 코드 값의 표시 
- 84B2           	;POP      PSW           ; 스택으로 부터 PSW값을 가지고 옴
+ 84A1           SCANN:     	    		
+ 84A1 C0D0      	PUSH     PSW     ; PSW 값을 스택에 보관
+ 84A3 D2D4      	SETB     PSW.4   ; 뱅크3 레지스터 사용
+ 84A5 D2D3      	SETB     PSW.3
+                
+ 84A7 7900      INITIAL:   MOV      R1,#00H       ; R1의 초기화
+ 84A9 74EF                 MOV      A,#11101111B  ; 데이터 아웃의 초기값
+                
+ 84AB F8        COLSCAN:   MOV      R0,A          ; R0에 데이터 아웃 값 보관 
+ 84AC 09                   INC      R1            ; R1 열의 값 보관 
+ 84AD 128577    	   CALL     SUBKEY        ; 키 패드 입력 상태 조사
+ 84B0 541F                 ANL      A,#00011111B  ; 상위 3비트 제거
+ 84B2 641F                 XRL      A,#00011111B  ; XRL 연산000111111
+ 84B4 7007                 JNZ      RSCAN         ; 누산기 값이 0 이 아니면, 행 스캔
+ 84B6 E8                   MOV      A,R0           
+ 84B7 D3                   SETB     C
+ 84B8 13                   RRC      A             ; 다음 열로 이동
+ 84B9 5019                 JNC	KEY_RET       ; 모든 열을 스캔했으면, 다시 시작 
+ 84BB 80EE                 JMP      COLSCAN       ; 다음 열의 스캔을 위한 분기
+                
+                
+ 84BD 7A00      RSCAN:     MOV      R2,#00H       ; R2 행의 값 보관
+ 84BF 13        ROWSCAN:   RRC      A             ; 어느 행이 "1" 로 바뀌었는지 조사
+ 84C0 4003                 JC       MATRIX        ; 캐리가 발생하면, MATRIX로 분기
+ 84C2 0A                   INC      R2            ; 캐리가 발생하지 않으면, 다음 행으로 이동
+ 84C3 80FA                 JMP      ROWSCAN       ; 다음 행의 스캔을 위한 분기
+                
+ 84C5           MATRIX:    
+ 84C5 EA        	MOV      A,R2          ; R2 에는 행의 값 보존
+ 84C6 75F005            MOV      B,#05H        ; 1행은 5열로 이루어짐
+ 84C9 A4        	MUL      AB            ; 2차원 배열을 1차원 배열로 값을 바꿈
+ 84CA 29        	ADD      A,R1          ; R1 에는 열의 값 보존
+ 84CB 128652    	CALL     INDEX         ; 키 코드 값을 지정
+ 84CE 128582    	CALL     DISPLAY       ; 키 코드 값의 표시 
+ 84D1           	;POP      PSW           ; 스택으로 부터 PSW값을 가지고 옴
                 	
- 84B2 0284B5    	JMP	KEY_RET                   ; 상위 루틴으로 복귀
- 84B5           KEY_RET:
- 84B5 D0D0      	POP	PSW
- 84B7 80B2      	JMP	LCD_ROUTINE_END
+ 84D1 0284D4    	JMP	KEY_RET                   ; 상위 루틴으로 복귀
+ 84D4           KEY_RET:
+ 84D4 D0D0      	POP	PSW
+ 84D6 80B2      	JMP	LCD_ROUTINE_END
                 
- 84B9           ;*************************************************************
- 84B9           ;*           서브 루틴: DISFONT                              *
- 84B9           ;*                입력: 숫자                                 *
- 84B9           ;*                출력: LCD 화면                             *
- 84B9           ;*                기능: 글자 폰트를 읽어와 LCD에 표시        *
- 84B9           ;*************************************************************
- 84B9 AD27      DISFONT:    MOV     R5,DISNUM      
- 84BB 852582    FLOOP:      MOV     DPL,FDPL
- 84BE 852683                MOV     DPH,FDPH 
- 84C1 ED                    MOV     A,R5
- 84C2 93                    MOVC    A,@A+DPTR                 
- 84C3 F521                  MOV     DATA,A
+ 84D8           ;*************************************************************
+ 84D8           ;*           서브 루틴: DISFONT                              *
+ 84D8           ;*                입력: 숫자                                 *
+ 84D8           ;*                출력: LCD 화면                             *
+ 84D8           ;*                기능: 글자 폰트를 읽어와 LCD에 표시        *
+ 84D8           ;*************************************************************
+ 84D8 AD27      DISFONT:    MOV     R5,DISNUM      
+ 84DA 852582    FLOOP:      MOV     DPL,FDPL
+ 84DD 852683                MOV     DPH,FDPH 
+ 84E0 ED                    MOV     A,R5
+ 84E1 93                    MOVC    A,@A+DPTR                 
+ 84E2 F521                  MOV     DATA,A
                 
- 84C5 128508                CALL    DATAWR
- 84C8 0D                    INC     R5
- 84C9 ED                    MOV     A,R5
- 84CA                       ;CJNE    A,NUMFONT,FLOOP
- 84CA 22                    RET    
+ 84E4 128527                CALL    DATAWR
+ 84E7 0D                    INC     R5
+ 84E8 ED                    MOV     A,R5
+ 84E9                       ;CJNE    A,NUMFONT,FLOOP
+ 84E9 22                    RET    
                 
- 84CB           ;*************************************************************
- 84CB           ;*           서브 루틴: DISSTRING                              *
- 84CB           ;*                입력: 숫자                                 *
- 84CB           ;*                출력: LCD 화면                             *
- 84CB           ;*                기능: 글자 폰트를 읽어와 LCD에 표시        *
- 84CB           ;*************************************************************
- 84CB AD27      DISSTRING:    MOV     R5,DISNUM      
- 84CD 852582    FFLOOP:      MOV     DPL,FDPL
- 84D0 852683                MOV     DPH,FDPH 
- 84D3 ED                    MOV     A,R5
- 84D4 93                    MOVC    A,@A+DPTR                 
- 84D5 F521                  MOV     DATA,A
+ 84EA           ;*************************************************************
+ 84EA           ;*           서브 루틴: DISSTRING                              *
+ 84EA           ;*                입력: 숫자                                 *
+ 84EA           ;*                출력: LCD 화면                             *
+ 84EA           ;*                기능: 글자 폰트를 읽어와 LCD에 표시        *
+ 84EA           ;*************************************************************
+ 84EA AD27      DISSTRING:    MOV     R5,DISNUM      
+ 84EC 852582    FFLOOP:      MOV     DPL,FDPL
+ 84EF 852683                MOV     DPH,FDPH 
+ 84F2 ED                    MOV     A,R5
+ 84F3 93                    MOVC    A,@A+DPTR                 
+ 84F4 F521                  MOV     DATA,A
                 
- 84D7 128508                CALL    DATAWR
- 84DA 0D                    INC     R5
- 84DB ED                    MOV     A,R5
- 84DC B524EE                CJNE    A,NUMFONT,FFLOOP
- 84DF 22                    RET    
+ 84F6 128527                CALL    DATAWR
+ 84F9 0D                    INC     R5
+ 84FA ED                    MOV     A,R5
+ 84FB B524EE                CJNE    A,NUMFONT,FFLOOP
+ 84FE 22                    RET    
                 
- 84E0           ;**************************************************************
- 84E0           ;*       서브 루틴: 커서의 위치 제어(CUR_MOV)                 *
- 84E0           ;*            입력: 커서의 행과 열 < LROW(행) ,LCOL(열) >     *
- 84E0           ;*            출력: LCD 화면                                  * 
- 84E0           ;*            기능: 커서 위치 조정                            *
- 84E0           ;**************************************************************  
- 84E0 E522      CUR_MOV:    MOV     A,LROW
- 84E2 B4010C                CJNE    A,#01H, NEXT
- 84E5 7480                  MOV     A ,#LINE_1
- 84E7 2523                  ADD     A ,LCOL
- 84E9 F520                  MOV     INST,A
- 84EB 1284FE                CALL    INSTWR
- 84EE 0284FD                JMP     RET_POINT                 
+ 84FF           ;**************************************************************
+ 84FF           ;*       서브 루틴: 커서의 위치 제어(CUR_MOV)                 *
+ 84FF           ;*            입력: 커서의 행과 열 < LROW(행) ,LCOL(열) >     *
+ 84FF           ;*            출력: LCD 화면                                  * 
+ 84FF           ;*            기능: 커서 위치 조정                            *
+ 84FF           ;**************************************************************  
+ 84FF E522      CUR_MOV:    MOV     A,LROW
+ 8501 B4010C                CJNE    A,#01H, NEXT
+ 8504 7480                  MOV     A ,#LINE_1
+ 8506 2523                  ADD     A ,LCOL
+ 8508 F520                  MOV     INST,A
+ 850A 12851D                CALL    INSTWR
+ 850D 02851C                JMP     RET_POINT                 
                 
- 84F1 B40209    NEXT:       CJNE    A,#02H, RET_POINT
- 84F4 74C0                  MOV     A ,#LINE_2
- 84F6 2523                  ADD     A ,LCOL
- 84F8 F520                  MOV     INST,A 
- 84FA 1284FE                CALL    INSTWR
- 84FD 22        RET_POINT:  RET
+ 8510 B40209    NEXT:       CJNE    A,#02H, RET_POINT
+ 8513 74C0                  MOV     A ,#LINE_2
+ 8515 2523                  ADD     A ,LCOL
+ 8517 F520                  MOV     INST,A 
+ 8519 12851D                CALL    INSTWR
+ 851C 22        RET_POINT:  RET
                 
- 84FE           ;**************************************************************
- 84FE           ;*         서브 루틴: INSTWR                                  *
- 84FE           ;*              입력: INST                                    *
- 84FE           ;*              출력: LCD 화면                                *
- 84FE           ;*              기능: LCD INSTRUCTION 레지스터 쓰기           *
- 84FE           ;**************************************************************
- 84FE 128512    INSTWR:     CALL     INSTRD
- 8501 90FFE0                MOV      DPTR,#LCDWIR
- 8504 E520                  MOV      A,INST
- 8506 F0                    MOVX     @DPTR,A 
- 8507 22                    RET
+ 851D           ;**************************************************************
+ 851D           ;*         서브 루틴: INSTWR                                  *
+ 851D           ;*              입력: INST                                    *
+ 851D           ;*              출력: LCD 화면                                *
+ 851D           ;*              기능: LCD INSTRUCTION 레지스터 쓰기           *
+ 851D           ;**************************************************************
+ 851D 128531    INSTWR:     CALL     INSTRD
+ 8520 90FFE0                MOV      DPTR,#LCDWIR
+ 8523 E520                  MOV      A,INST
+ 8525 F0                    MOVX     @DPTR,A 
+ 8526 22                    RET
                 
- 8508           ;**************************************************************
- 8508           ;*          서브 루틴:DATAWR                                  *
- 8508           ;*               입력:DATA                                    * 
- 8508           ;*               출력:LCD 화면                                *
- 8508           ;*               기능:LCD DATA 레지스터 쓰기                  *
- 8508           ;**************************************************************
- 8508 128512    DATAWR:     CALL     INSTRD
- 850B 90FFE1                MOV      DPTR,#LCDWDR
- 850E E521                  MOV      A,DATA
- 8510 F0                    MOVX     @DPTR,A
- 8511 22                    RET
+ 8527           ;**************************************************************
+ 8527           ;*          서브 루틴:DATAWR                                  *
+ 8527           ;*               입력:DATA                                    * 
+ 8527           ;*               출력:LCD 화면                                *
+ 8527           ;*               기능:LCD DATA 레지스터 쓰기                  *
+ 8527           ;**************************************************************
+ 8527 128531    DATAWR:     CALL     INSTRD
+ 852A 90FFE1                MOV      DPTR,#LCDWDR
+ 852D E521                  MOV      A,DATA
+ 852F F0                    MOVX     @DPTR,A
+ 8530 22                    RET
                 
- 8512           ;**************************************************************
- 8512           ;*          서브 루틴:INSTRD                                  *
- 8512           ;*               입력:없음                                    *
- 8512           ;*               출력;BUSY                                    *
- 8512           ;*               기능:비지 플래그/어드레스 읽기               *
- 8512           ;**************************************************************
- 8512 90FFE2    INSTRD:     MOV      DPTR,#LCDRIR
- 8515 E0                    MOVX     A,@DPTR
- 8516 20E7F9                JB       ACC.7,INSTRD 
- 8519 22                    RET               
+ 8531           ;**************************************************************
+ 8531           ;*          서브 루틴:INSTRD                                  *
+ 8531           ;*               입력:없음                                    *
+ 8531           ;*               출력;BUSY                                    *
+ 8531           ;*               기능:비지 플래그/어드레스 읽기               *
+ 8531           ;**************************************************************
+ 8531 90FFE2    INSTRD:     MOV      DPTR,#LCDRIR
+ 8534 E0                    MOVX     A,@DPTR
+ 8535 20E7F9                JB       ACC.7,INSTRD 
+ 8538 22                    RET               
                 
                 
- 851A           ;***************************************************************
- 851A           ;*         DEFINE  MESSAGE                                     *
- 851A           ;***************************************************************
+ 8539           ;***************************************************************
+ 8539           ;*         DEFINE  MESSAGE                                     *
+ 8539           ;***************************************************************
                  
- 851A 30313233  CLOCKS: DB '0','1','2','3','4'
- 851F 35363738  	 DB '5','6','7','8','9'
- 8524 3A2D4443  	 DB ':','-','D','C', 'O'
- 8529 524D      	 DB 'R','M'
+ 8539 30313233  CLOCKS: DB '0','1','2','3','4'
+ 853E 35363738  	 DB '5','6','7','8','9'
+ 8543 3A2D4443  	 DB ':','-','D','C', 'O'
+ 8548 524D      	 DB 'R','M'
                 
- 852B           LOCK_MESSAGES:
- 852B 456E7465  	DB 'E','n','t','e','r'
- 8530 20505721  	DB ' ','P','W','!','!'
- 8535 52452D45  	DB 'R','E','-','E','n'
- 853A 74657220  	DB 't','e','r',' ','P'
- 853F 572121    	DB 'W','!','!'
+ 854A           LOCK_MESSAGES:
+ 854A 456E7465  	DB 'E','n','t','e','r'
+ 854F 20505721  	DB ' ','P','W','!','!'
+ 8554 52452D45  	DB 'R','E','-','E','n'
+ 8559 74657220  	DB 't','e','r',' ','P'
+ 855E 572121    	DB 'W','!','!'
                 
- 8542           OPEN_MESSAGES:
- 8542 446F6F72  	DB 'D','o','o','r',' '
- 8547 4C6F636B  	DB 'L','o','c','k',' '
- 854C 456E7465  	DB 'E','n','t','e','r'
- 8551 205057    	DB ' ','P','W'
-                	
+ 8561           OPEN_MESSAGES:
+ 8561 446F6F72  	DB 'D','o','o','r',' '
+ 8566 4C6F636B  	DB 'L','o','c','k',' '
+ 856B 456E7465  	DB 'E','n','t','e','r'
+ 8570 205057    	DB ' ','P','W'
+                
+ 8573           STARS:
+ 8573 2A2A2A2A  	DB '*','*','*','*'
                 
                 
- 8554           ;*****************************************************************
- 8554           ;*         서브 루틴 : SUBKEY                                    *
- 8554           ;*              입력 : ACC                                       *
- 8554           ;*              출력 : ACC                                       *
- 8554           ;*              기능 : 데이터 아웃으로 데이터를 내보내고         *
- 8554           ;*                     데이터 인으로 결과를 확인                 * 
- 8554           ;*****************************************************************
- 8554 00        SUBKEY:    NOP
- 8555 F8        	   MOV	    R0, A
- 8556 90FFF0    	   MOV      DPTR,#DATAOUT
- 8559 F0                   MOVX     @DPTR,A
- 855A 90FFF1               MOV      DPTR,#DATAIN
- 855D E0                   MOVX     A,@DPTR
- 855E 22                   RET
+ 8577           ;*****************************************************************
+ 8577           ;*         서브 루틴 : SUBKEY                                    *
+ 8577           ;*              입력 : ACC                                       *
+ 8577           ;*              출력 : ACC                                       *
+ 8577           ;*              기능 : 데이터 아웃으로 데이터를 내보내고         *
+ 8577           ;*                     데이터 인으로 결과를 확인                 * 
+ 8577           ;*****************************************************************
+ 8577 00        SUBKEY:    NOP
+ 8578 F8        	   MOV	    R0, A
+ 8579 90FFF0    	   MOV      DPTR,#DATAOUT
+ 857C F0                   MOVX     @DPTR,A
+ 857D 90FFF1               MOV      DPTR,#DATAIN
+ 8580 E0                   MOVX     A,@DPTR
+ 8581 22                   RET
                 
- 855F           ;*****************************************************************
- 855F           ;*         서브 루틴 : DISPLAY                                   *
- 855F           ;*              입력 : ACC                                       *
- 855F           ;*              출력 : ACC                                       *
- 855F           ;*              기능 : 키 코드값을 7_SEGMENT 로 표시             *
- 855F           ;*****************************************************************
- 855F           DISPLAY:   
- 855F 90FFC1    	MOV      DPTR,#DLED
- 8562 F0        	MOVX     @DPTR,A
+ 8582           ;*****************************************************************
+ 8582           ;*         서브 루틴 : DISPLAY                                   *
+ 8582           ;*              입력 : ACC                                       *
+ 8582           ;*              출력 : ACC                                       *
+ 8582           ;*              기능 : 키 코드값을 7_SEGMENT 로 표시             *
+ 8582           ;*****************************************************************
+ 8582           DISPLAY:   
+ 8582 90FFC1    	MOV      DPTR,#DLED
+ 8585 F0        	MOVX     @DPTR,A
                 	   
- 8563 F536      	MOV	KEYBOARD_INPUT, A ; 입력값 백업
+ 8586 F536      	MOV	KEYBOARD_INPUT, A ; 입력값 백업
                 	
- 8565 E532      	MOV	A, MODE_STATUS
- 8567 B40014    	CJNE	A, #00H, NOT_RUN_MODE	
- 856A E536      	MOV	A, KEYBOARD_INPUT	;런닝모드 시 처리	
- 856C B40B03    	CJNE	A, #0BH, NOT_BTN_B
- 856F 753201    	MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
+ 8588 E532      	MOV	A, MODE_STATUS
+ 858A B40014    	CJNE	A, #00H, NOT_RUN_MODE	
+ 858D E536      	MOV	A, KEYBOARD_INPUT	;런닝모드 시 처리	
+ 858F B40B03    	CJNE	A, #0BH, NOT_BTN_B
+ 8592 753201    	MOV MODE_STATUS, #01H	;B버튼이 눌렸을 시 수정모드로 변경
                 	
- 8572           	NOT_BTN_B:
- 8572 B40A06    		CJNE	A, #0AH, NOT_BTN_AB
- 8575 753210    		MOV	MODE_STATUS, #10H	; A버튼이 눌린 경우 도어락 잠금모드로 전환
- 8578 0285F9    		JMP	INTERRUPT_END
- 857B           	NOT_BTN_AB:
- 857B 0285F9    		JMP	INTERRUPT_END
+ 8595           	NOT_BTN_B:
+ 8595 B40A06    		CJNE	A, #0AH, NOT_BTN_AB
+ 8598 753210    		MOV	MODE_STATUS, #10H	; A버튼이 눌린 경우 도어락 잠금모드로 전환
+ 859B 028651    		JMP	INTERRUPT_END
+ 859E           	NOT_BTN_AB:
+ 859E 028651    		JMP	INTERRUPT_END
                 
                 
- 857E           NOT_RUN_MODE:				
- 857E B40144    	CJNE A, #01H, NOT_MODI_MODE	
- 8581 E536      	MOV	A, KEYBOARD_INPUT	;수정모드
- 8583 B40B03    	CJNE	A, #0BH, NOT_B
- 8586 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+ 85A1           NOT_RUN_MODE:				
+ 85A1 B40144    	CJNE A, #01H, NOT_MODI_MODE	
+ 85A4 E536      	MOV	A, KEYBOARD_INPUT	;수정모드
+ 85A6 B40B03    	CJNE	A, #0BH, NOT_B
+ 85A9 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
                 	
- 8589           	NOT_B:
- 8589 B40A06    		CJNE	A, #0AH, NOT_A
- 858C 753210    		MOV MODE_STATUS, #10H	;A버튼이 눌렸을 시 도어락 잠금모드로 변경
- 858F 0285F9    		JMP	INTERRUPT_END
- 8592           	NOT_A:
- 8592 B40C05    		CJNE	A, #0CH, NOT_C
- 8595 0533      		INC	STATICHOURINFO
- 8597 0285F9    		JMP	INTERRUPT_END
- 859A           	NOT_C:
- 859A B40D05    		CJNE	A, #0DH, NOT_D
- 859D 0534      		INC	STATICMININFO
- 859F 0285F9    		JMP	INTERRUPT_END
- 85A2           	NOT_D:
- 85A2 B40E05    		CJNE	A, #0EH, NOT_E
- 85A5 0535      		INC	STATICSECINFO
- 85A7 0285F9    		JMP	INTERRUPT_END
- 85AA           	NOT_E:
- 85AA B41705    		CJNE	A, #17H, NOT_17
- 85AD 052F      		INC	YEARINFO
- 85AF 0285F9    		JMP	INTERRUPT_END
- 85B2           	NOT_17:
- 85B2 B41605    		CJNE	A, #16H, NOT_16
- 85B5 0530      		INC	MONTHINFO
- 85B7 0285F9    		JMP	INTERRUPT_END
- 85BA           	NOT_16:
- 85BA B41505    		CJNE	A, #15H, NOT_15
- 85BD 0531      		INC	DAYINFO
- 85BF 0285F9    		JMP	INTERRUPT_END
- 85C2           	NOT_15:
- 85C2 0285F9    		JMP	INTERRUPT_END
+ 85AC           	NOT_B:
+ 85AC B40A06    		CJNE	A, #0AH, NOT_A
+ 85AF 753210    		MOV MODE_STATUS, #10H	;A버튼이 눌렸을 시 도어락 잠금모드로 변경
+ 85B2 028651    		JMP	INTERRUPT_END
+ 85B5           	NOT_A:
+ 85B5 B40C05    		CJNE	A, #0CH, NOT_C
+ 85B8 0533      		INC	STATICHOURINFO
+ 85BA 028651    		JMP	INTERRUPT_END
+ 85BD           	NOT_C:
+ 85BD B40D05    		CJNE	A, #0DH, NOT_D
+ 85C0 0534      		INC	STATICMININFO
+ 85C2 028651    		JMP	INTERRUPT_END
+ 85C5           	NOT_D:
+ 85C5 B40E05    		CJNE	A, #0EH, NOT_E
+ 85C8 0535      		INC	STATICSECINFO
+ 85CA 028651    		JMP	INTERRUPT_END
+ 85CD           	NOT_E:
+ 85CD B41705    		CJNE	A, #17H, NOT_17
+ 85D0 052F      		INC	YEARINFO
+ 85D2 028651    		JMP	INTERRUPT_END
+ 85D5           	NOT_17:
+ 85D5 B41605    		CJNE	A, #16H, NOT_16
+ 85D8 0530      		INC	MONTHINFO
+ 85DA 028651    		JMP	INTERRUPT_END
+ 85DD           	NOT_16:
+ 85DD B41505    		CJNE	A, #15H, NOT_15
+ 85E0 0531      		INC	DAYINFO
+ 85E2 028651    		JMP	INTERRUPT_END
+ 85E5           	NOT_15:
+ 85E5 028651    		JMP	INTERRUPT_END
                 	
                 
- 85C5           NOT_MODI_MODE:
- 85C5 B41017    	CJNE A, #10H, NOT_CLOSE_MODE
- 85C8 E536      	MOV	A, KEYBOARD_INPUT	;도어락 잠금모드
- 85CA B40B06    	CJNE	A, #0BH, NOT_B_C
- 85CD 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
- 85D0 0285F9    	JMP	INTERRUPT_END
+ 85E8           NOT_MODI_MODE:
+ 85E8 B4104C    	CJNE A, #10H, NOT_CLOSE_MODE
+ 85EB E536      	MOV	A, KEYBOARD_INPUT	;도어락 잠금모드
+ 85ED B40B06    	CJNE	A, #0BH, NOT_B_C
+ 85F0 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+ 85F3 028651    	JMP	INTERRUPT_END
                 	
- 85D3           	NOT_B_C:
- 85D3 B40A06    		CJNE	A, #0AH, NOT_A_C
- 85D6 753211    		MOV	MODE_STATUS, #11H
- 85D9 0285F9    		JMP	INTERRUPT_END
+ 85F6           	NOT_B_C:
+ 85F6 B40A06    		CJNE	A, #0AH, NOT_A_C
+ 85F9 753211    		MOV	MODE_STATUS, #11H
+ 85FC 028651    		JMP	INTERRUPT_END
                 
- 85DC           	NOT_A_C:
- 85DC 0285F9    		JMP	INTERRUPT_END
+ 85FF           	NOT_A_C:
+ 85FF 0501      		INC PW_INPUT_NUM
+ 8601 E501      		MOV	A, PW_INPUT_NUM
+ 8603 B40107    		CJNE	A, #01H, PW_NOT_ONE
+ 8606 E536      		MOV	A, KEYBOARD_INPUT
+ 8608 F502      		MOV	PW1, A 
+ 860A 028651    		JMP	INTERRUPT_END
+ 860D           	PW_NOT_ONE:
+ 860D E501      		MOV	A, PW_INPUT_NUM
+ 860F B40207    		CJNE	A, #02H, PW_NOT_TWO
+ 8612 E536      		MOV	A, KEYBOARD_INPUT
+ 8614 F503      		MOV	PW2, A
+ 8616 028651    		JMP	INTERRUPT_END
+ 8619           	PW_NOT_TWO:
+ 8619 E501      	 	MOV	A, PW_INPUT_NUM
+ 861B B40307    		CJNE	A, #03H, PW_NOT_THREE
+ 861E E536      		MOV	A, KEYBOARD_INPUT
+ 8620 F504      		MOV	PW3, A
+ 8622 028651    		JMP	INTERRUPT_END
+ 8625           	PW_NOT_THREE:
+ 8625 E501      		MOV	A, PW_INPUT_NUM
+ 8627 B40407    		CJNE	A, #04H, PW_ALL_INPUT
+ 862A E536      		MOV	A, KEYBOARD_INPUT
+ 862C F505      		MOV	PW4, A
+ 862E 028651    		JMP	INTERRUPT_END
+ 8631           	PW_ALL_INPUT:
+ 8631 750100    		MOV	PW_INPUT_NUM, #00H
+ 8634 028651    		JMP	INTERRUPT_END
                 		
-                		
                 
- 85DF           NOT_CLOSE_MODE:
- 85DF B41117    	CJNE A, #11H, INTERRUPT_END
- 85E2 E536      	MOV	A, KEYBOARD_INPUT
- 85E4 B40B06    	CJNE	A, #0BH, NOT_B_L
- 85E7 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
- 85EA 0285F9    	JMP	INTERRUPT_END
+ 8637           NOT_CLOSE_MODE:
+ 8637 B41117    	CJNE A, #11H, INTERRUPT_END
+ 863A E536      	MOV	A, KEYBOARD_INPUT
+ 863C B40B06    	CJNE	A, #0BH, NOT_B_L
+ 863F 753200    	MOV MODE_STATUS, #00H	;B버튼이 눌렸을 시 런닝모드로 변경
+ 8642 028651    	JMP	INTERRUPT_END
                 	
- 85ED           	NOT_B_L:
- 85ED B40A06    		CJNE	A, #0AH, NOT_A_L
- 85F0 753210    		MOV	MODE_STATUS, #10H
- 85F3 0285F9    		JMP	INTERRUPT_END
+ 8645           	NOT_B_L:
+ 8645 B40A06    		CJNE	A, #0AH, NOT_A_L
+ 8648 753210    		MOV	MODE_STATUS, #10H
+ 864B 028651    		JMP	INTERRUPT_END
                 
- 85F6           	NOT_A_L:
- 85F6 0285F9    		JMP	INTERRUPT_END
+ 864E           	NOT_A_L:
+ 864E 028651    		JMP	INTERRUPT_END
                 	
                 	   
                 
                 	
- 85F9           	INTERRUPT_END:
- 85F9 22                   RET
+ 8651           	INTERRUPT_END:
+ 8651 22                   RET
                 
                 
- 85FA           ;*****************************************************************
- 85FA           ;*         서브 루틴 : INDEX                                     *
- 85FA           ;*              입력 : ACC                                       *
- 85FA           ;*              출력 : ACC                                       *
- 85FA           ;*              기능 : 키 코드값을 정의                          * 
- 85FA           ;*****************************************************************
- 85FA           ;DEFINE  FUNCTION KEY
+ 8652           ;*****************************************************************
+ 8652           ;*         서브 루틴 : INDEX                                     *
+ 8652           ;*              입력 : ACC                                       *
+ 8652           ;*              출력 : ACC                                       *
+ 8652           ;*              기능 : 키 코드값을 정의                          * 
+ 8652           ;*****************************************************************
+ 8652           ;DEFINE  FUNCTION KEY
                 
  0010           RWKEY      EQU     10H ;READ AND WRITE KEY
  0011           INCKEY     EQU     11H ;INCRESE KEY(COMMA ,)
@@ -1013,38 +1059,38 @@
  0017           ST         EQU     17H ;SINGLE STEP KEY
  0018           RST        EQU     18H ;RST KEY
                 
- 85FA 83        INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
- 85FB 22                   RET
+ 8652 83        INDEX:     MOVC    A,@A+PC     ;A IS FROM 1 TO 24
+ 8653 22                   RET
                 
- 85FC 17        KEYBASE:   DB ST            ;SW1,ST                  1
- 85FD 16                   DB CODE          ;SW6,CODE                2
- 85FE 15                   DB DECKEY        ;SW11,CD                 3
- 85FF 14                   DB REG           ;SW15,REG                4
- 8600 13                   DB GO            ;SW19,GO                 5
- 8601 0C                   DB 0CH           ;SW2,C                   6
- 8602 0D                   DB 0DH           ;SW7,D                   7
- 8603 0E                   DB 0EH           ;SW12,E                  8
- 8604 0F                   DB 0FH           ;SW16,F                  9
- 8605 11                   DB INCKEY        ;SW20,COMMA (,)         10
- 8606 08                   DB 08H           ;SW3,8                  11
- 8607 09                   DB 09H           ;SW8,9                  12
- 8608 0A                   DB 0AH           ;SW13,A                 13
- 8609 0B                   DB 0BH           ;SW17,B                 14
- 860A 12                   DB ENDKEY        ;SW21,PERIOD(.)         15
- 860B 04                   DB 04H           ;SW4,4                  16
- 860C 05                   DB 05H           ;SW9,5                  17
- 860D 06                   DB 06H           ;SW14,6                 18
- 860E 07                   DB 07H           ;SW18,7                 19
- 860F 10                   DB RWKEY         ;SW22,R/W               20
- 8610 00                   DB 00H           ;SW5,0                  21
- 8611 01                   DB 01H           ;SW10,1                 22
- 8612 02                   DB 02H           ;SW24,2                 23
- 8613 03                   DB 03H           ;SW23,3                 24
- 8614                     ;DB RST           ;SW24  RST KEY          25
+ 8654 17        KEYBASE:   DB ST            ;SW1,ST                  1
+ 8655 16                   DB CODE          ;SW6,CODE                2
+ 8656 15                   DB DECKEY        ;SW11,CD                 3
+ 8657 14                   DB REG           ;SW15,REG                4
+ 8658 13                   DB GO            ;SW19,GO                 5
+ 8659 0C                   DB 0CH           ;SW2,C                   6
+ 865A 0D                   DB 0DH           ;SW7,D                   7
+ 865B 0E                   DB 0EH           ;SW12,E                  8
+ 865C 0F                   DB 0FH           ;SW16,F                  9
+ 865D 11                   DB INCKEY        ;SW20,COMMA (,)         10
+ 865E 08                   DB 08H           ;SW3,8                  11
+ 865F 09                   DB 09H           ;SW8,9                  12
+ 8660 0A                   DB 0AH           ;SW13,A                 13
+ 8661 0B                   DB 0BH           ;SW17,B                 14
+ 8662 12                   DB ENDKEY        ;SW21,PERIOD(.)         15
+ 8663 04                   DB 04H           ;SW4,4                  16
+ 8664 05                   DB 05H           ;SW9,5                  17
+ 8665 06                   DB 06H           ;SW14,6                 18
+ 8666 07                   DB 07H           ;SW18,7                 19
+ 8667 10                   DB RWKEY         ;SW22,R/W               20
+ 8668 00                   DB 00H           ;SW5,0                  21
+ 8669 01                   DB 01H           ;SW10,1                 22
+ 866A 02                   DB 02H           ;SW24,2                 23
+ 866B 03                   DB 03H           ;SW23,3                 24
+ 866C                     ;DB RST           ;SW24  RST KEY          25
                 
                 
- 8614                               ;
- 8614                               END
+ 866C                               ;
+ 866C                               END
 
 
  PUSAN NATIONAL UNIVERSITY  8051 CROSS-ASSEMBLER        VERSION 1.20
