@@ -34,6 +34,10 @@ YEARINFO EQU     2FH    ; 연도 값 보관
 MONTHINFO EQU    30H    ; 월 값 보관
 DAYINFO   EQU    31H    ; 일 값 보관
 MODE_STATUS	EQU	32H; 런닝모드(00H), 수정모드(01H), 잠금모드(10H), 해제모드(11H)
+STATICHOURINFO	EQU	33H ; 수정모드를 위한 고정 시간값
+STATICMININFO	EQU	34H ; 수정모드를 위한 고정 분값
+STATICSECINFO	EQU	35H ; 수정모드를 위한 고정 초값
+KEYBOARD_INPUT	EQU	36H ; 키보드 입력값 저장공간
 
 ;DEFINE LCD INSTRUCTION 
 ;*********************************************************************
@@ -64,6 +68,11 @@ LINE_2      EQU     0C0H   ;1 010 0000 : LCD 2 번째 줄로 이동
 
           ORG     8000H  
 	MOV	MODE_STATUS, #00H
+	MOV STATICHOURINFO, #00H
+	MOV STATICMININFO, #00H
+	MOV STATICSECINFO, #00H
+
+	
 ;PROGRAMED BY  KIM HYUNG SOO
 LEDHOU    EQU     0FFC3H    ; 시(Hour) 표시 주소
 LEDMIN    EQU     0FFC2H    ; 분(Min)  표시 주소
@@ -247,6 +256,10 @@ DOOR_OPEN_PASS:
 
 	
 CLOCK_RUN_MODE:
+	; 수정모드를 위한 고정 시간정보 백업
+	MOV STATICHOURINFO, R7
+	MOV STATICMININFO, R6
+	MOV STATICSECINFO, R5
 	;첫번째 행 시간 정보 글자 뿌리기
 	    MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
             MOV     LCOL,#06H ; 글자 시작 위치(열)
@@ -393,7 +406,165 @@ CLOCK_RUN_MODE:
 	PUSH 06H
 	PUSH 07H
 	JMP	SCANN
-ESCAPE:
+
+
+CLOCK_MODI_MODE:
+	  	;첫번째 행 시간 정보 글자 뿌리기
+	    MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+            MOV     LCOL,#06H ; 글자 시작 위치(열)
+            
+            MOV     INST,#ENTRY2
+            CALL    INSTWR 
+  	    CALL    CUR_MOV
+ 	    MOV     DPTR,#CLOCKS
+
+	    MOV     FDPL,DPL
+            MOV     FDPH,DPH
+	    
+	    ;시간정보            
+            MOV     NUMFONT,#02H
+	    MOV	    A, STATICHOURINFO
+	    MOV     B, #10H
+	    DIV     AB
+	    MOV	    NUM1, A
+	    MOV     NUM2, B
+	    MOV     DISNUM,NUM1		;시간정보 십자리
+	    CALL    DISFONT 
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,NUM2		;시간정보 일자리
+	    CALL    DISFONT
+	    
+	    ;콜론
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,#0AH
+	    CALL    DISFONT
+	    
+	    
+	    ;분 정보
+	    MOV     LCOL,#09H
+	    CALL    CUR_MOV
+	    MOV	    A, STATICMININFO
+	    MOV     B, #10H
+	    DIV     AB
+	    MOV	    NUM1, A
+	    MOV     NUM2, B
+	    MOV     DISNUM,NUM1		;분정보 십자리
+	    CALL    DISFONT
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,NUM2		;분정보 일자리
+	    CALL    DISFONT
+
+	    ;콜론
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,#0AH
+	    CALL    DISFONT
+	    
+	    
+	    ;초 정보
+	    MOV     LCOL,#0CH
+	    CALL    CUR_MOV
+	    MOV	    A, STATICSECINFO
+	    MOV     B, #10H
+	    DIV     AB
+	    MOV	    NUM1, A
+	    MOV     NUM2, B
+	    MOV     DISNUM,NUM1		;초정보 십자리
+	    CALL    DISFONT
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,NUM2		;초정보 일자리
+	    CALL    DISFONT
+	   
+	;두번째 행 글자 뿌리기 시작
+            MOV     LROW,#02H
+            MOV     LCOL,#06H
+            CALL    CUR_MOV
+	    ;연월일 정보 초기화(일단 임시값으로)
+	    MOV YEARINFO, #16
+	    MOV MONTHINFO, #6
+	    MOV DAYINFO, #21
+ 	    
+	    ;연 정보
+            MOV 	A,YEARINFO
+	    MOV		B,#10
+	    DIV		AB
+	    MOV		NUM1,A
+	    MOV		NUM2,B
+	    MOV		DISNUM,NUM1	;연 정보 십자리
+            CALL    DISFONT
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,NUM2		;연정보 일자리
+	    CALL    DISFONT
+	    
+	    ;빼기 문자
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,#0BH
+	    CALL    DISFONT
+	    
+	    ;월 정보
+	    MOV     	LCOL,#09H
+	    CALL    	CUR_MOV
+    	    MOV 	A,MONTHINFO
+	    MOV		B,#10
+	    DIV		AB
+	    MOV		NUM1,A
+	    MOV		NUM2,B
+	    MOV		DISNUM,NUM1	;연 정보 십자리
+            CALL   	DISFONT
+	    INC	   	LCOL
+	    CALL   	CUR_MOV
+	    MOV     	DISNUM,NUM2		;연정보 일자리
+	    CALL	DISFONT
+	    
+	    ;빼기 문자
+	    INC	    LCOL
+	    CALL    CUR_MOV
+	    MOV     DISNUM,#0BH
+	    CALL    DISFONT
+
+	    ;일 정보
+	    MOV     	LCOL,#0CH
+	    CALL    	CUR_MOV
+    	    MOV 	A,DAYINFO
+	    MOV		B,#10
+	    DIV		AB
+	    MOV		NUM1,A
+	    MOV		NUM2,B
+	    MOV		DISNUM,NUM1	;일 정보 십자리
+            CALL   	DISFONT
+	    INC	   	LCOL
+	    CALL   	CUR_MOV
+	    MOV     	DISNUM,NUM2	;일 정보 일자리
+	    ;TODO: 키보드 인터럽트 처리하기
+	    CALL	DISFONT
+	PUSH DPH
+	PUSH DPL
+	PUSH A
+	PUSH B
+	PUSH 01H
+	PUSH 02H
+	PUSH 03H
+	PUSH 04H
+	PUSH 05H
+	PUSH 06H
+	PUSH 07H
+	JMP	SCANN
+
+
+DOOR_CLOSE_MODE:
+	  JMP LCD_ROUTINE_END
+
+DOOR_OPEN_MODE:
+	  JMP LCD_ROUTINE_END
+
+
+LCD_ROUTINE_END:
 	POP 07H
 	POP 06H
 	POP 05H
@@ -405,21 +576,6 @@ ESCAPE:
 	POP A
 	POP DPL
 	POP DPH
-	JMP LCD_ROUTINE_END	
-
-CLOCK_MODI_MODE:
-	  JMP LCD_ROUTINE_END
-
-
-DOOR_CLOSE_MODE:
-	  JMP LCD_ROUTINE_END
-
-DOOR_OPEN_MODE:
-	  JMP LCD_ROUTINE_END
-
-
-LCD_ROUTINE_END:
-	NOP
 
             RET
 
@@ -467,7 +623,7 @@ MATRIX:
 	JMP	KEY_RET                   ; 상위 루틴으로 복귀
 KEY_RET:
 	POP	PSW
-	JMP	ESCAPE
+	JMP	LCD_ROUTINE_END
 
 ;*************************************************************
 ;*           서브 루틴: DISFONT                              *
@@ -578,6 +734,21 @@ SUBKEY:    NOP
 ;*****************************************************************
 DISPLAY:   MOV      DPTR,#DLED
            MOVX     @DPTR,A
+	   ;입력값 백업
+	   MOV	KEYBOARD_INPUT, A
+	   ;모드 변경 처리
+	   CJNE		A, #0BH, INTERRUPT_END
+	   MOV 	A, MODE_STATUS
+	   CJNE A, #00H, CHANGE_TO_RUN
+	   MOV MODE_STATUS, #01H
+	   JMP INTERRUPT_END
+	   	   
+	CHANGE_TO_RUN:
+		MOV MODE_STATUS, #00H
+	        JMP INTERRUPT_END
+
+	
+	INTERRUPT_END:
            RET
 
 ;*****************************************************************
