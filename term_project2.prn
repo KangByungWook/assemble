@@ -451,169 +451,165 @@
                 
  8277           CLOCK_MODI_MODE:
  8277           	  	;첫번째 행 시간 정보 글자 뿌리기
- 8277 752201    	    MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
- 827A 752306                MOV     LCOL,#06H ; 글자 시작 위치(열)
+ 8277 752201    	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+ 827A 752306    	MOV     LCOL,#06H ; 글자 시작 위치(열)
                             
- 827D 752006                MOV     INST,#ENTRY2
- 8280 12847E                CALL    INSTWR 
- 8283 128460      	    CALL    CUR_MOV
- 8286 90849A     	    MOV     DPTR,#CLOCKS
+ 827D 752006    	MOV     INST,#ENTRY2
+ 8280 12847E    	CALL    INSTWR 
+ 8283 128460    	CALL    CUR_MOV
+ 8286 90849A    	MOV     DPTR,#CLOCKS
                 
- 8289 858225    	    MOV     FDPL,DPL
- 828C 858326                MOV     FDPH,DPH
+ 8289 858225    	MOV     FDPL,DPL
+ 828C 858326    	MOV     FDPH,DPH
                 	    
- 828F           	    ;시간정보            
- 828F 752402                MOV     NUMFONT,#02H
- 8292 E533      	    MOV	    A, STATICHOURINFO
- 8294 75F010    	    MOV     B, #10H
- 8297 84        	    DIV     AB
- 8298 F528      	    MOV	    NUM1, A
- 829A 85F029    	    MOV     NUM2, B
- 829D 852827    	    MOV     DISNUM,NUM1		;시간정보 십자리
- 82A0 128439    	    CALL    DISFONT 
- 82A3 0523      	    INC	    LCOL
- 82A5 128460    	    CALL    CUR_MOV
- 82A8 852927    	    MOV     DISNUM,NUM2		;시간정보 일자리
- 82AB 128439    	    CALL    DISFONT
+ 828F           	;시간정보            
+ 828F 752402    	MOV     NUMFONT,#02H
+ 8292 E533      	MOV	    A, STATICHOURINFO
+ 8294 75F010    	MOV     B, #10H
+ 8297 84        	DIV     AB
+ 8298 F528      	MOV	    NUM1, A
+ 829A 85F029    	MOV     NUM2, B
+ 829D 852827    	MOV     DISNUM,NUM1		;시간정보 십자리
+ 82A0 128439    	CALL    DISFONT 
+ 82A3 0523      	INC	    LCOL
+ 82A5 128460    	CALL    CUR_MOV
+ 82A8 852927    	MOV     DISNUM,NUM2		;시간정보 일자리
+ 82AB 128439    	CALL    DISFONT
                 	    
- 82AE           	    ;콜론
- 82AE 0523      	    INC	    LCOL
- 82B0 128460    	    CALL    CUR_MOV
- 82B3 75270A    	    MOV     DISNUM,#0AH
- 82B6 128439    	    CALL    DISFONT
+ 82AE           	;콜론
+ 82AE 0523      	INC	    LCOL
+ 82B0 128460    	CALL    CUR_MOV
+ 82B3 75270A    	MOV     DISNUM,#0AH
+ 82B6 128439    	CALL    DISFONT
                 	    
-                	    
- 82B9           	    ;분 정보
- 82B9 752309    	    MOV     LCOL,#09H
- 82BC 128460    	    CALL    CUR_MOV
- 82BF E534      	    MOV	    A, STATICMININFO
- 82C1 75F010    	    MOV     B, #10H
- 82C4 84        	    DIV     AB
- 82C5 F528      	    MOV	    NUM1, A
- 82C7 85F029    	    MOV     NUM2, B
- 82CA 852827    	    MOV     DISNUM,NUM1		;분정보 십자리
- 82CD 128439    	    CALL    DISFONT
- 82D0 0523      	    INC	    LCOL
- 82D2 128460    	    CALL    CUR_MOV
- 82D5 852927    	    MOV     DISNUM,NUM2		;분정보 일자리
- 82D8 128439    	    CALL    DISFONT
+ 82B9           	;분 정보
+ 82B9 752309    	MOV     LCOL,#09H
+ 82BC 128460    	CALL    CUR_MOV
+ 82BF E534      	MOV	    A, STATICMININFO
+ 82C1 75F010    	MOV     B, #10H
+ 82C4 84        	DIV     AB
+ 82C5 F528      	MOV	    NUM1, A
+ 82C7 85F029    	MOV     NUM2, B
+ 82CA 852827    	MOV     DISNUM,NUM1		;분정보 십자리
+ 82CD 128439    	CALL    DISFONT
+ 82D0 0523      	INC	    LCOL
+ 82D2 128460    	CALL    CUR_MOV
+ 82D5 852927    	MOV     DISNUM,NUM2		;분정보 일자리
+ 82D8 128439    	CALL    DISFONT
                 
- 82DB           	    ;콜론
- 82DB 0523      	    INC	    LCOL
- 82DD 128460    	    CALL    CUR_MOV
- 82E0 75270A    	    MOV     DISNUM,#0AH
- 82E3 128439    	    CALL    DISFONT
-                	    
-                	    
+ 82DB           	;콜론
+ 82DB 0523      	INC	    LCOL
+ 82DD 128460    	CALL    CUR_MOV
+ 82E0 75270A    	MOV     DISNUM,#0AH
+ 82E3 128439    	CALL    DISFONT
  82E6           	    ;초 정보
- 82E6 75230C    	    MOV     LCOL,#0CH
- 82E9 128460    	    CALL    CUR_MOV
- 82EC E535      	    MOV	    A, STATICSECINFO
- 82EE 75F010    	    MOV     B, #10H
- 82F1 84        	    DIV     AB
- 82F2 F528      	    MOV	    NUM1, A
- 82F4 85F029    	    MOV     NUM2, B
- 82F7 852827    	    MOV     DISNUM,NUM1		;초정보 십자리
- 82FA 128439    	    CALL    DISFONT
- 82FD 0523      	    INC	    LCOL
- 82FF 128460    	    CALL    CUR_MOV
- 8302 852927    	    MOV     DISNUM,NUM2		;초정보 일자리
- 8305 128439    	    CALL    DISFONT
+ 82E6 75230C    	MOV     LCOL,#0CH
+ 82E9 128460    	CALL    CUR_MOV
+ 82EC E535      	MOV	    A, STATICSECINFO
+ 82EE 75F010    	MOV     B, #10H
+ 82F1 84        	DIV     AB
+ 82F2 F528      	MOV	    NUM1, A
+ 82F4 85F029    	MOV     NUM2, B
+ 82F7 852827    	MOV     DISNUM,NUM1		;초정보 십자리
+ 82FA 128439    	CALL    DISFONT
+ 82FD 0523      	INC	    LCOL
+ 82FF 128460    	CALL    CUR_MOV
+ 8302 852927    	MOV     DISNUM,NUM2		;초정보 일자리
+ 8305 128439    	CALL    DISFONT
                 
- 8308 E537      	    MOV 	A, DOOR_STATUS
+ 8308 E537      	MOV 	A, DOOR_STATUS
  830A B4001B    	CJNE	A, #00H, DOOR_OPEN_MODI
  830D           	    				;도어락 상태 표시
- 830D 0523      	    INC LCOL
- 830F 0523      	    INC	    LCOL
- 8311 128460    	    CALL    CUR_MOV
- 8314 75270C    	    MOV     DISNUM,#0CH		;D
- 8317 128439    	    CALL    DISFONT
- 831A 0523      	    INC	    LCOL
- 831C 128460    	    CALL    CUR_MOV
- 831F 75270D    	    MOV     DISNUM,#0DH		;C
- 8322 128439    	    CALL    DISFONT
- 8325 028340    	    JMP		DIS_SECOND_LIN
+ 830D 0523      	INC LCOL
+ 830F 0523      	INC	    LCOL
+ 8311 128460    	CALL    CUR_MOV
+ 8314 75270C    	MOV     DISNUM,#0CH		;D
+ 8317 128439    	CALL    DISFONT
+ 831A 0523      	INC	    LCOL
+ 831C 128460    	CALL    CUR_MOV
+ 831F 75270D    	MOV     DISNUM,#0DH		;C
+ 8322 128439    	CALL    DISFONT
+ 8325 028340    	JMP		DIS_SECOND_LIN
                 	
  8328           	DOOR_OPEN_MODI:
- 8328 0523      	    INC LCOL
- 832A 0523      	    INC	    LCOL
- 832C 128460    	    CALL    CUR_MOV
- 832F 75270C    	    MOV     DISNUM,#0CH		;D
- 8332 128439    	    CALL    DISFONT
- 8335 0523      	    INC	    LCOL
- 8337 128460    	    CALL    CUR_MOV
- 833A 75270F    	    MOV     DISNUM,#0FH		;O
- 833D 128439    	    CALL    DISFONT
+ 8328 0523      	INC LCOL
+ 832A 0523      	INC	    LCOL
+ 832C 128460    	CALL    CUR_MOV
+ 832F 75270C    	MOV     DISNUM,#0CH		;D
+ 8332 128439    	CALL    DISFONT
+ 8335 0523      	INC	    LCOL
+ 8337 128460    	CALL    CUR_MOV
+ 833A 75270F    	MOV     DISNUM,#0FH		;O
+ 833D 128439    	CALL    DISFONT
                 
  8340           DIS_SECOND_LIN:
  8340           	;두번째 행 글자 뿌리기 시작
- 8340 752202                MOV     LROW,#02H
- 8343 752306                MOV     LCOL,#06H
- 8346 128460                CALL    CUR_MOV
+ 8340 752202    	MOV     LROW,#02H
+ 8343 752306    	MOV     LCOL,#06H
+ 8346 128460    	CALL    CUR_MOV
                 	    
                  	    
- 8349           	    ;연 정보
- 8349 E52F                  MOV 	A,YEARINFO
- 834B 75F00A    	    MOV		B,#10
- 834E 84        	    DIV		AB
- 834F F528      	    MOV		NUM1,A
- 8351 85F029    	    MOV		NUM2,B
- 8354 852827    	    MOV		DISNUM,NUM1	;연 정보 십자리
- 8357 128439                CALL    DISFONT
- 835A 0523      	    INC	    LCOL
- 835C 128460    	    CALL    CUR_MOV
- 835F 852927    	    MOV     DISNUM,NUM2		;연정보 일자리
- 8362 128439    	    CALL    DISFONT
+ 8349           	;연 정보
+ 8349 E52F      	MOV 	A,YEARINFO
+ 834B 75F00A    	MOV	B,#10
+ 834E 84        	DIV	AB
+ 834F F528      	MOV	NUM1,A
+ 8351 85F029    	MOV	NUM2,B
+ 8354 852827    	MOV	DISNUM,NUM1	;연 정보 십자리
+ 8357 128439    	CALL    DISFONT
+ 835A 0523      	INC	LCOL
+ 835C 128460    	CALL    CUR_MOV
+ 835F 852927    	MOV     DISNUM,NUM2		;연정보 일자리
+ 8362 128439    	CALL    DISFONT
                 	    
- 8365           	    ;빼기 문자
- 8365 0523      	    INC	    LCOL
- 8367 128460    	    CALL    CUR_MOV
- 836A 75270B    	    MOV     DISNUM,#0BH
- 836D 128439    	    CALL    DISFONT
+ 8365           	;빼기 문자
+ 8365 0523      	INC	LCOL
+ 8367 128460    	CALL    CUR_MOV
+ 836A 75270B    	MOV     DISNUM,#0BH
+ 836D 128439    	CALL    DISFONT
                 	    
- 8370           	    ;월 정보
- 8370 752309    	    MOV     	LCOL,#09H
- 8373 128460    	    CALL    	CUR_MOV
- 8376 E530          	    MOV 	A,MONTHINFO
- 8378 75F00A    	    MOV		B,#10
- 837B 84        	    DIV		AB
- 837C F528      	    MOV		NUM1,A
- 837E 85F029    	    MOV		NUM2,B
- 8381 852827    	    MOV		DISNUM,NUM1	;월 정보 십자리
- 8384 128439                CALL   	DISFONT
- 8387 0523      	    INC	   	LCOL
- 8389 128460    	    CALL   	CUR_MOV
- 838C 852927    	    MOV     	DISNUM,NUM2		;월 정보 일자리
- 838F 128439    	    CALL	DISFONT
+ 8370           	;월 정보
+ 8370 752309    	MOV     LCOL,#09H
+ 8373 128460    	CALL    CUR_MOV
+ 8376 E530      	MOV 	A,MONTHINFO
+ 8378 75F00A    	MOV	B,#10
+ 837B 84        	DIV	AB
+ 837C F528      	MOV	NUM1,A
+ 837E 85F029    	MOV	NUM2,B
+ 8381 852827    	MOV	DISNUM,NUM1	;월 정보 십자리
+ 8384 128439    	CALL   	DISFONT
+ 8387 0523      	INC	LCOL
+ 8389 128460    	CALL   	CUR_MOV
+ 838C 852927    	MOV     DISNUM,NUM2		;월 정보 일자리
+ 838F 128439    	CALL	DISFONT
                 	    
- 8392           	    ;빼기 문자
- 8392 0523      	    INC	    LCOL
- 8394 128460    	    CALL    CUR_MOV
- 8397 75270B    	    MOV     DISNUM,#0BH
- 839A 128439    	    CALL    DISFONT
+ 8392           	;빼기 문자
+ 8392 0523      	INC	    LCOL
+ 8394 128460    	CALL    CUR_MOV
+ 8397 75270B    	MOV     DISNUM,#0BH
+ 839A 128439    	CALL    DISFONT
                 
- 839D           	    ;일 정보
- 839D 75230C    	    MOV     	LCOL,#0CH
- 83A0 128460    	    CALL    	CUR_MOV
- 83A3 E531          	    MOV 	A,DAYINFO
- 83A5 75F00A    	    MOV		B,#10
- 83A8 84        	    DIV		AB
- 83A9 F528      	    MOV		NUM1,A
- 83AB 85F029    	    MOV		NUM2,B
- 83AE 852827    	    MOV		DISNUM,NUM1	;일 정보 십자리
- 83B1 128439                CALL   	DISFONT
- 83B4 0523      	    INC	   	LCOL
- 83B6 128460    	    CALL   	CUR_MOV
- 83B9 852927    	    MOV     	DISNUM,NUM2	;일 정보 일자리
- 83BC           	    ;TODO: 키보드 인터럽트 처리하기
- 83BC 128439    	    CALL	DISFONT
+ 839D           	;일 정보
+ 839D 75230C    	MOV     	LCOL,#0CH
+ 83A0 128460    	CALL    	CUR_MOV
+ 83A3 E531      	MOV 	A,DAYINFO
+ 83A5 75F00A    	MOV		B,#10
+ 83A8 84        	DIV		AB
+ 83A9 F528      	MOV		NUM1,A
+ 83AB 85F029    	MOV		NUM2,B
+ 83AE 852827    	MOV		DISNUM,NUM1	;일 정보 십자리
+ 83B1 128439    	CALL   	DISFONT
+ 83B4 0523      	INC	   	LCOL
+ 83B6 128460    	CALL   	CUR_MOV
+ 83B9 852927    	MOV     	DISNUM,NUM2	;일 정보 일자리
+ 83BC 128439    	CALL	DISFONT
                 		
  83BF           	; 모드 표시하기
- 83BF 0523      	    INC LCOL
- 83C1 0523      	    INC	   	LCOL
- 83C3 128460    	    CALL   	CUR_MOV
- 83C6 752710    	    MOV     	DISNUM,#10H	;M
- 83C9 128439    	    CALL	DISFONT
+ 83BF 0523      	INC LCOL
+ 83C1 0523      	INC	LCOL
+ 83C3 128460    	CALL   	CUR_MOV
+ 83C6 752710    	MOV    	DISNUM,#10H	;M
+ 83C9 128439    	CALL	DISFONT
                 
  83CC           	 ;두번째 행 글자 뿌리기 시작
  83CC C083      	PUSH DPH
@@ -631,10 +627,10 @@
                 
                 
  83E5           DOOR_CLOSE_MODE:
- 83E5 0283EB    	  JMP LCD_ROUTINE_END
+ 83E5 0283EB    	JMP LCD_ROUTINE_END
                 
  83E8           DOOR_OPEN_MODE:
- 83E8 0283EB    	  JMP LCD_ROUTINE_END
+ 83E8 0283EB    	JMP LCD_ROUTINE_END
                 
                 
  83EB           LCD_ROUTINE_END:
@@ -650,7 +646,7 @@
  83FD D082      	POP DPL
  83FF D083      	POP DPH
                 
- 8401 22                    RET
+ 8401 22        	RET
                 
                 
                 

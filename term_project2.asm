@@ -451,102 +451,100 @@ DIS_SECOND_LINE: ;두번째 행 글자 뿌리기 시작
 
 CLOCK_MODI_MODE:
 	  	;첫번째 행 시간 정보 글자 뿌리기
-	    MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
-            MOV     LCOL,#06H ; 글자 시작 위치(열)
+	MOV     LROW,#01H ; 글자 시작 위치(행), 01H=첫번째 행, 01H=두번째 행
+	MOV     LCOL,#06H ; 글자 시작 위치(열)
             
-            MOV     INST,#ENTRY2
-            CALL    INSTWR 
-  	    CALL    CUR_MOV
- 	    MOV     DPTR,#CLOCKS
+	MOV     INST,#ENTRY2
+	CALL    INSTWR 
+	CALL    CUR_MOV
+	MOV     DPTR,#CLOCKS
 
-	    MOV     FDPL,DPL
-            MOV     FDPH,DPH
+	MOV     FDPL,DPL
+	MOV     FDPH,DPH
 	    
-	    ;시간정보            
-            MOV     NUMFONT,#02H
-	    MOV	    A, STATICHOURINFO
-	    MOV     B, #10H
-	    DIV     AB
-	    MOV	    NUM1, A
-	    MOV     NUM2, B
-	    MOV     DISNUM,NUM1		;시간정보 십자리
-	    CALL    DISFONT 
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,NUM2		;시간정보 일자리
-	    CALL    DISFONT
+	;시간정보            
+	MOV     NUMFONT,#02H
+	MOV	    A, STATICHOURINFO
+	MOV     B, #10H
+	DIV     AB
+	MOV	    NUM1, A
+	MOV     NUM2, B
+	MOV     DISNUM,NUM1		;시간정보 십자리
+	CALL    DISFONT 
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,NUM2		;시간정보 일자리
+	CALL    DISFONT
 	    
-	    ;콜론
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0AH
-	    CALL    DISFONT
+	;콜론
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0AH
+	CALL    DISFONT
 	    
-	    
-	    ;분 정보
-	    MOV     LCOL,#09H
-	    CALL    CUR_MOV
-	    MOV	    A, STATICMININFO
-	    MOV     B, #10H
-	    DIV     AB
-	    MOV	    NUM1, A
-	    MOV     NUM2, B
-	    MOV     DISNUM,NUM1		;분정보 십자리
-	    CALL    DISFONT
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,NUM2		;분정보 일자리
-	    CALL    DISFONT
+	;분 정보
+	MOV     LCOL,#09H
+	CALL    CUR_MOV
+	MOV	    A, STATICMININFO
+	MOV     B, #10H
+	DIV     AB
+	MOV	    NUM1, A
+	MOV     NUM2, B
+	MOV     DISNUM,NUM1		;분정보 십자리
+	CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,NUM2		;분정보 일자리
+	CALL    DISFONT
 
-	    ;콜론
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0AH
-	    CALL    DISFONT
-	    
-	    
+	;콜론
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0AH
+	CALL    DISFONT
 	    ;초 정보
-	    MOV     LCOL,#0CH
-	    CALL    CUR_MOV
-	    MOV	    A, STATICSECINFO
-	    MOV     B, #10H
-	    DIV     AB
-	    MOV	    NUM1, A
-	    MOV     NUM2, B
-	    MOV     DISNUM,NUM1		;초정보 십자리
-	    CALL    DISFONT
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,NUM2		;초정보 일자리
-	    CALL    DISFONT
+	MOV     LCOL,#0CH
+	CALL    CUR_MOV
+	MOV	    A, STATICSECINFO
+	MOV     B, #10H
+	DIV     AB
+	MOV	    NUM1, A
+	MOV     NUM2, B
+	MOV     DISNUM,NUM1		;초정보 십자리
+	CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,NUM2		;초정보 일자리
+	CALL    DISFONT
 
-	    MOV 	A, DOOR_STATUS
+	MOV 	A, DOOR_STATUS
 	CJNE	A, #00H, DOOR_OPEN_MODI
 	    				;도어락 상태 표시
-	    INC LCOL
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0CH		;D
-	    CALL    DISFONT
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0DH		;C
-	    CALL    DISFONT
-	    JMP		DIS_SECOND_LIN
+	INC LCOL
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0CH		;D
+	CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0DH		;C
+	CALL    DISFONT
+	JMP		DIS_SECOND_LIN
 	
 	DOOR_OPEN_MODI:
-	    INC LCOL
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0CH		;D
-	    CALL    DISFONT
-	    INC	    LCOL
-	    CALL    CUR_MOV
-	    MOV     DISNUM,#0FH		;O
-	    CALL    DISFONT
+	INC LCOL
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0CH		;D
+	CALL    DISFONT
+	INC	    LCOL
+	CALL    CUR_MOV
+	MOV     DISNUM,#0FH		;O
+	CALL    DISFONT
 
 DIS_SECOND_LIN:
 	;두번째 행 글자 뿌리기 시작
+	MOV     LROW,#02H
 	MOV     LCOL,#06H
 	CALL    CUR_MOV
 	    
